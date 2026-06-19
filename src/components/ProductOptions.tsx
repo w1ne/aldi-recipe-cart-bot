@@ -69,7 +69,6 @@ export default function ProductOptions({
 
       {chosen ? (
         <div className="sp-opt is-chosen">
-          <span className="sp-opt__radio" aria-hidden="true" />
           <span className="sp-opt__body">
             <span className="sp-opt__pname">{chosen.name}</span>
             <span className="sp-opt__meta">

@@ -121,11 +121,11 @@ p {
 .app__brand {
   max-width: var(--max-w);
   margin: 0 auto;
-  height: var(--header-h);
+  min-height: var(--header-h);
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 16px;
+  padding: 8px 16px;
 }
 
 .app__logo {
@@ -144,6 +144,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  min-width: 0;
 }
 
 .app__title {

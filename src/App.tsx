@@ -3,7 +3,6 @@ import { useI18n, LANGS } from "./lib/i18n";
 
 export default function App() {
   const { t, lang, setLang } = useI18n();
-  const currentFlag = LANGS.find((l) => l.code === lang)?.flag ?? "🌐";
 
   return (
     <div className="app">
@@ -17,7 +16,6 @@ export default function App() {
         </div>
 
         <label className="app__lang" aria-label={t("lang.label")}>
-          <span className="app__lang-flag" aria-hidden="true">{currentFlag}</span>
           <select
             className="app__lang-select"
             value={lang}

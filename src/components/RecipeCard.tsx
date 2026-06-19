@@ -1,5 +1,7 @@
+import { useState } from "react";
 import type { RecipeCardProps } from "../lib/types";
 import { useI18n } from "../lib/i18n";
+import { dishImageUrl, cuisineEmoji } from "../lib/recipeImages";
 import "./showpiece.css";
 
 /**
@@ -9,6 +11,7 @@ import "./showpiece.css";
  */
 export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardProps) {
   const { t } = useI18n();
+  const [imgOk, setImgOk] = useState(true);
   const pick = () => onSelect?.(recipe.id);
 
   // Show at most a few tags so the card stays compact; the rest collapse
@@ -29,6 +32,21 @@ export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardPro
         <span className="sp-recipe-card__check" aria-hidden="true">
           ✓
         </span>
+
+        <div className="sp-recipe-card__photo" aria-hidden="true">
+          {imgOk ? (
+            <img
+              src={dishImageUrl(recipe.name)}
+              alt=""
+              loading="lazy"
+              onError={() => setImgOk(false)}
+            />
+          ) : (
+            <span className="sp-recipe-card__photo-fallback">
+              {cuisineEmoji(recipe.cuisine)}
+            </span>
+          )}
+        </div>
 
         <div className="sp-recipe-card__head">
           <span className="sp-recipe-card__cuisine">{recipe.cuisine}</span>

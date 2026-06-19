@@ -1,5 +1,4 @@
-import { useState } from "react";
-import type { Artifact, OptimizeMode, RecipeDetail } from "../lib/types";
+import type { Artifact, RecipeDetail } from "../lib/types";
 import type { ChatUIMessage } from "../lib/aiChat";
 import { selectionFor } from "../lib/basket";
 import { useI18n } from "../lib/i18n";
@@ -9,6 +8,7 @@ import RecipeCard from "./RecipeCard";
 import ProductOptions from "./ProductOptions";
 import BasketPanel from "./BasketPanel";
 import RouteGuide from "./RouteGuide";
+import Markdown from "./Markdown";
 
 interface MessageProps {
   message: ChatUIMessage;
@@ -34,7 +34,7 @@ export default function ChatMessage({ message, onSend, disabled, recipe }: Messa
           if (!part.text) return null;
           return (
             <div className="bubble" key={i}>
-              <p className="bubble__text">{part.text}</p>
+              <Markdown className="bubble__text" text={part.text} />
             </div>
           );
         }
@@ -140,20 +140,20 @@ function ArtifactView({
  * selection map from basket helpers.
  */
 function RecipeArtifact({ detail }: { detail: RecipeDetail }) {
-  const [mode, setMode] = useState<OptimizeMode>("profit");
-  const selection = selectionFor(detail, mode);
+  // The basket is always the ALDI-margin-maximising pick — no mode toggle.
+  const selection = selectionFor(detail, "profit");
 
   const ingredients = detail.ingredients.filter((i) => i.include_in_shopping_list);
 
   return (
     <div className="artifact artifact--recipe">
-      <BasketPanel detail={detail} mode={mode} onModeChange={setMode} selection={selection} />
+      <BasketPanel detail={detail} selection={selection} />
       <div className="ingredient-list">
         {ingredients.map((ing) => (
           <ProductOptions
             key={ing.ingredient_key}
             ingredient={ing}
-            mode={mode}
+            mode="profit"
             chosenId={selection[ing.ingredient_key]}
           />
         ))}

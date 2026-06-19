@@ -1,15 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { BasketPanelProps, OptimizeMode } from "../lib/types";
+import type { BasketPanelProps } from "../lib/types";
 import { totalsFor } from "../lib/basket";
 import { useI18n } from "../lib/i18n";
-import type { TKey } from "../lib/i18n";
 import "./showpiece.css";
-
-const MODES: { value: OptimizeMode; emoji: string; labelKey: TKey }[] = [
-  { value: "cheapest", emoji: "💰", labelKey: "basket.mode.cheapest" },
-  { value: "balanced", emoji: "⚖️", labelKey: "basket.mode.balanced" },
-  { value: "profit", emoji: "📈", labelKey: "basket.mode.profit" },
-];
 
 const eur = (n: number) =>
   new Intl.NumberFormat("de-DE", {
@@ -18,18 +11,12 @@ const eur = (n: number) =>
   }).format(n);
 
 /**
- * BasketPanel — the profit showpiece. A sticky summary card with a 3-way
- * segmented toggle (Cheapest / Balanced / Best for ALDI). Reads totals via
- * totalsFor(detail, selection), shows the big customer total and the ALDI
- * margin with a subtle progress bar, and count-up animates the numbers
- * whenever the mode/selection changes — making the margin feel like a win.
+ * BasketPanel — the profit showpiece. The basket is ALWAYS the ALDI-maximised
+ * pick (highest line_margin per ingredient), so there is no mode toggle. Shows
+ * the customer total and, prominently, ALDI's margin with a subtle bar, and
+ * count-up animates the numbers whenever the basket changes.
  */
-export default function BasketPanel({
-  detail,
-  mode,
-  onModeChange,
-  selection,
-}: BasketPanelProps) {
+export default function BasketPanel({ detail, selection }: BasketPanelProps) {
   const { t } = useI18n();
   const totals = totalsFor(detail, selection);
   const customer = useCountUp(totals.customer_total);
@@ -41,45 +28,12 @@ export default function BasketPanel({
       ? Math.min(100, (totals.aldi_margin / totals.customer_total) * 100)
       : 0;
 
-  const activeIndex = Math.max(
-    0,
-    MODES.findIndex((m) => m.value === mode)
-  );
-
   return (
     <div className="sp">
       <section className="sp-basket" aria-label="Basket summary">
         <div className="sp-basket__title">
           <span className="sp-dot" aria-hidden="true" />
           {t("basket.title")}
-        </div>
-
-        {/* 3-way segmented toggle */}
-        <div
-          className="sp-seg"
-          role="tablist"
-          aria-label="Basket optimisation mode"
-        >
-          <span
-            className="sp-seg__thumb"
-            aria-hidden="true"
-            style={{ transform: `translateX(${activeIndex * 100}%)` }}
-          />
-          {MODES.map((m) => (
-            <button
-              key={m.value}
-              type="button"
-              role="tab"
-              aria-selected={m.value === mode}
-              className={`sp-seg__btn${m.value === mode ? " is-active" : ""}`}
-              onClick={() => onModeChange(m.value)}
-            >
-              <span className="sp-seg__emoji" aria-hidden="true">
-                {m.emoji}
-              </span>
-              <span>{t(m.labelKey)}</span>
-            </button>
-          ))}
         </div>
 
         {/* big numbers */}
@@ -113,13 +67,7 @@ export default function BasketPanel({
           <span>
             {Object.keys(selection).length} {t("basket.items")}
           </span>
-          {mode === "profit" ? (
-            <span className="sp-basket__pill">{t("basket.pill.profit")}</span>
-          ) : mode === "balanced" ? (
-            <span className="sp-basket__pill">{t("basket.pill.balanced")}</span>
-          ) : (
-            <span className="sp-basket__pill">{t("basket.pill.cheapest")}</span>
-          )}
+          <span className="sp-basket__pill">{t("basket.pill.profit")}</span>
         </div>
       </section>
     </div>

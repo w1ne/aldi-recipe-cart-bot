@@ -177,9 +177,7 @@ export interface ProductOptionsProps {
 
 export interface BasketPanelProps {
   detail: RecipeDetail;
-  mode: OptimizeMode;
-  onModeChange: (mode: OptimizeMode) => void;
-  // resolved selection per ingredient_key -> option id under current mode
+  // resolved selection per ingredient_key -> option id (always profit-maximised)
   selection: Record<string, number>;
 }
 

@@ -13,6 +13,9 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg"],
+      // Cache-busting: the new service worker activates immediately and takes
+      // over open clients, and autoUpdate reloads the page so users never get
+      // stuck on a stale build.
       manifest: {
         name: "ALDI Recipe-to-Cart Assistant",
         short_name: "ALDI Cart",
@@ -31,6 +34,9 @@ export default defineConfig({
         // Cache the app shell; never cache the chat API or ALDI API responses.
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [],
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
       },
     }),
   ],

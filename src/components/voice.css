@@ -1,0 +1,54 @@
+/* Mic button in the chat composer — sits to the left of the send button and
+   matches the round 44px send-button footprint. */
+.chat-input__mic {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  transition: transform 0.12s var(--ease), background 0.2s, color 0.2s;
+  cursor: pointer;
+}
+
+.chat-input__mic:not(:disabled):active {
+  transform: scale(0.92);
+}
+
+.chat-input__mic:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.chat-input__mic svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Recording state — solid red, pulsing halo. */
+.chat-input__mic.is-listening {
+  background: #e23744;
+  color: #fff;
+  animation: voice-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes voice-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(226, 55, 68, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(226, 55, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(226, 55, 68, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-input__mic.is-listening {
+    animation: none;
+  }
+}

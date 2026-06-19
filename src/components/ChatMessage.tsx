@@ -1,7 +1,6 @@
 import type { Artifact, RecipeDetail } from "../lib/types";
 import type { ChatUIMessage } from "../lib/aiChat";
 import { selectionFor } from "../lib/basket";
-import { useI18n } from "../lib/i18n";
 
 // Showpiece components — rendered from the tool parts of the streamed message.
 import RecipeCard from "./RecipeCard";
@@ -9,6 +8,7 @@ import ProductOptions from "./ProductOptions";
 import BasketPanel from "./BasketPanel";
 import RouteGuide from "./RouteGuide";
 import Markdown from "./Markdown";
+import StoreMap from "./StoreMap";
 
 interface MessageProps {
   message: ChatUIMessage;
@@ -86,7 +86,6 @@ function ArtifactView({
   disabled?: boolean;
   recipe?: RecipeDetail;
 }) {
-  const { t } = useI18n();
   switch (artifact.type) {
     case "recipes":
       return (
@@ -107,22 +106,7 @@ function ArtifactView({
     case "stores":
       return (
         <div className="artifact artifact--stores">
-          {artifact.stores.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className="store-chip"
-              onClick={() => onSend(`Use store ${s.name}`)}
-              disabled={disabled}
-              aria-label={`${t("stores.use")}: ${s.name}`}
-              title={t("stores.use")}
-            >
-              <span className="store-chip__pin" aria-hidden="true">
-                📍
-              </span>
-              {s.name}
-            </button>
-          ))}
+          <StoreMap stores={artifact.stores} onPick={onSend} disabled={disabled} />
         </div>
       );
 

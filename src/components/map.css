@@ -1,0 +1,205 @@
+/* ============================================================================
+ * map.css — styles for the in-chat StoreMap (Leaflet + OpenStreetMap).
+ * Rounded-card look matching the showpiece components. Mobile-first.
+ * ========================================================================== */
+
+.storemap {
+  --sm-navy: var(--aldi-navy, #00005f);
+  --sm-blue: var(--aldi-blue, #41b6e6);
+  --sm-orange: var(--aldi-orange, #ff7800);
+  --sm-green: #2e9e54;
+  --sm-ink: #1c1c28;
+  --sm-muted: #6b7280;
+  --sm-line: #e6e8ee;
+  --sm-paper: #ffffff;
+  --sm-wash: #f5f7fb;
+  --sm-radius: 16px;
+  --sm-shadow: 0 6px 20px rgba(0, 0, 16, 0.08);
+  font-family: inherit;
+  color: var(--sm-ink);
+  width: 100%;
+  max-width: 460px;
+}
+
+/* The Leaflet map canvas. */
+.storemap__canvas {
+  height: 260px;
+  width: 100%;
+  border-radius: var(--sm-radius);
+  overflow: hidden;
+  box-shadow: var(--sm-shadow);
+  border: 1px solid var(--sm-line);
+  z-index: 0; /* keep Leaflet panes below app chrome */
+}
+
+.storemap__canvas .leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: var(--sm-radius);
+  font: inherit;
+  background: var(--sm-wash);
+}
+
+/* Status line above the list (geolocation hints). */
+.storemap__status {
+  margin: 10px 2px 6px;
+  font-size: 13px;
+  color: var(--sm-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 18px;
+}
+
+.storemap__status--ok {
+  color: var(--sm-green);
+  font-weight: 600;
+}
+
+/* Custom divIcon pins. */
+.sm-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--aldi-navy, #00005f);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 16, 0.35);
+  transform: rotate(-45deg);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.sm-pin > span {
+  transform: rotate(45deg);
+}
+
+.sm-pin--nearest {
+  width: 40px;
+  height: 40px;
+  background: var(--aldi-orange, #ff7800);
+  font-size: 18px;
+  z-index: 1000;
+}
+
+.sm-pin--you {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1a73e8;
+  border: 3px solid #fff;
+  transform: none;
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.25);
+}
+
+/* Popup "use this store" button. */
+.sm-popup__name {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.sm-popup__addr {
+  font-size: 12px;
+  color: var(--sm-muted);
+  margin-bottom: 8px;
+}
+
+.sm-popup__btn,
+.storemap__card-pick {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  background: var(--aldi-navy, #00005f);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
+.sm-popup__btn:disabled,
+.storemap__card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Fallback / alternative tappable list of stores. */
+.storemap__list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.storemap__card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  cursor: pointer;
+  background: var(--sm-paper);
+  border: 1px solid var(--sm-line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: var(--sm-shadow);
+  transition: border-color 0.15s ease, transform 0.05s ease;
+  color: inherit;
+  font: inherit;
+}
+
+.storemap__card:hover:not(:disabled),
+.storemap__card:focus-visible:not(:disabled) {
+  border-color: var(--aldi-blue, #41b6e6);
+  outline: none;
+}
+
+.storemap__card:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.storemap__card--nearest {
+  border-color: var(--aldi-orange, #ff7800);
+  box-shadow: 0 0 0 2px rgba(255, 120, 0, 0.18), var(--sm-shadow);
+}
+
+.storemap__card-pin {
+  font-size: 18px;
+  flex: 0 0 auto;
+}
+
+.storemap__card-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.storemap__card-name {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storemap__card-city {
+  font-size: 12px;
+  color: var(--sm-muted);
+}
+
+.storemap__badge {
+  flex: 0 0 auto;
+  background: var(--aldi-orange, #ff7800);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  padding: 3px 9px;
+  text-transform: uppercase;
+}

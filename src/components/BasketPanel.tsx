@@ -20,13 +20,6 @@ export default function BasketPanel({ detail, selection }: BasketPanelProps) {
   const { t } = useI18n();
   const totals = totalsFor(detail, selection);
   const customer = useCountUp(totals.customer_total);
-  const margin = useCountUp(totals.aldi_margin);
-
-  // Bar fill = margin as a share of the customer total (capped, for taste).
-  const marginPct =
-    totals.customer_total > 0
-      ? Math.min(100, (totals.aldi_margin / totals.customer_total) * 100)
-      : 0;
 
   return (
     <div className="sp">
@@ -36,7 +29,6 @@ export default function BasketPanel({ detail, selection }: BasketPanelProps) {
           {t("basket.title")}
         </div>
 
-        {/* big numbers */}
         <div className="sp-basket__numbers">
           <div className="sp-stat">
             <div className="sp-stat__label">{t("basket.youPay")}</div>
@@ -44,30 +36,12 @@ export default function BasketPanel({ detail, selection }: BasketPanelProps) {
               {eur(customer)}
             </Bumping>
           </div>
-
-          <div className="sp-stat sp-stat--margin">
-            <div className="sp-stat__label">{t("basket.aldiMargin")}</div>
-            <Bumping value={totals.aldi_margin} className="sp-stat__value">
-              {eur(margin)}
-            </Bumping>
-            <div
-              className="sp-stat__bar"
-              role="img"
-              aria-label={`ALDI margin is ${eur(totals.aldi_margin)}`}
-            >
-              <div
-                className="sp-stat__barfill"
-                style={{ width: `${marginPct}%` }}
-              />
-            </div>
-          </div>
         </div>
 
         <div className="sp-basket__foot">
           <span>
             {Object.keys(selection).length} {t("basket.items")}
           </span>
-          <span className="sp-basket__pill">{t("basket.pill.profit")}</span>
         </div>
       </section>
     </div>

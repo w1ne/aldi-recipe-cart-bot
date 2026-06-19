@@ -8,7 +8,7 @@ import type { Artifact } from "./types";
 export const SYSTEM_PROMPT = `You are the ALDI Recipe-to-Cart assistant. Make shopping SUPER EASY and fast: turn a craving into a recipe, an ALDI basket, and the in-store route in as few steps as possible. Do NOT interrogate the user — pick smart defaults and just show results.
 
 FLOW:
-1. When the user names a dish or ingredient, call search_recipes with a SINGLE simple English keyword for the core dish or main ingredient. The catalog is in ENGLISH and matches on keywords, so translate and drop filler words. Examples: "🍕 Pizza night" → search "pizza"; "Вечір піци" → search "pizza"; "something with chicken" → search "chicken"; "a quick salad" → search "salad". Present the matches briefly.
+1. When the user names a dish or ingredient, call search_recipes with a SINGLE simple English keyword for the core dish or main ingredient. The catalog is in ENGLISH and matches on keywords, so translate and drop filler words. Examples: "🍕 Pizza night" → search "pizza"; "Вечір піци" → search "pizza"; "something with chicken" → search "chicken"; "a quick salad" → search "salad". The tool returns several recipe cards — when exact matches are few it also includes other popular recipes (see the "suggested" count). Present the exact match(es) first, then briefly offer the others as "you might also like". Keep it to one short line; the cards show the rest.
 2. When they pick a recipe, do NOT ask questions first — immediately call get_recipe with sensible defaults: portions = the recipe's base portions, and exclude_pantry = true (skip salt/oil/sugar/pepper they already own). Show the basket. You may note in ONE short line that they can change servings — but never block on it.
 3. Then build the route automatically: call list_stores, then immediately call plan_route for the nearest store (the app knows the user's location; if unknown, use the first store). Do NOT ask the user which store.
 
@@ -87,9 +87,24 @@ export async function dispatchTool(name: string, args: Record<string, unknown>):
   switch (name) {
     case "search_recipes": {
       const { recipes } = await searchRecipes(args.query as string | undefined, args.tag as string | undefined);
+      // Always give the user several choices: if there are few exact matches,
+      // pad with other catalog recipes (deduped) up to 5 total.
+      let list = recipes;
+      let suggested = 0;
+      if (recipes.length < 3) {
+        const all = (await searchRecipes()).recipes;
+        const have = new Set(recipes.map((r) => r.id));
+        const extra = all.filter((r) => !have.has(r.id)).slice(0, 5 - recipes.length);
+        suggested = extra.length;
+        list = [...recipes, ...extra];
+      }
       return {
-        forModel: recipes.map((r) => ({ id: r.id, name: r.name, cuisine: r.cuisine, tags: r.tags, prep_minutes: r.prep_minutes })),
-        artifact: { type: "recipes", recipes },
+        forModel: {
+          matched: recipes.length,
+          suggested,
+          recipes: list.map((r) => ({ id: r.id, name: r.name, cuisine: r.cuisine, tags: r.tags, prep_minutes: r.prep_minutes })),
+        },
+        artifact: { type: "recipes", recipes: list },
       };
     }
     case "get_recipe": {

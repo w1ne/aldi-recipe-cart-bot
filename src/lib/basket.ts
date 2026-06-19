@@ -15,7 +15,20 @@ export function chooseOption(ing: Ingredient, mode: OptimizeMode): ProductOption
     ing.product_options.find((p) => p.id === id) ?? ing.product_options[0];
 
   if (mode === "cheapest") return byId(ing.cheapest_option_id);
-  if (mode === "profit") return byId(ing.max_profit_option_id);
+
+  if (mode === "profit") {
+    // Margin-maximising, but SANE: the raw max_profit_option_id often points at
+    // a giant pack (1kg beef for a 500g need, 4 tins of tomatoes for one),
+    // doubling the customer's bill and looking absurd. So we pick the highest
+    // margin only among options that don't grossly overcharge vs the cheapest
+    // (≤ 1.5x its line price). ALDI still earns the best honest margin without
+    // forcing the shopper to overbuy.
+    const cheapest = byId(ing.cheapest_option_id);
+    const cap = cheapest.line_price * 1.5;
+    const sane = ing.product_options.filter((p) => p.line_price <= cap);
+    const pool = sane.length ? sane : ing.product_options;
+    return pool.reduce((best, p) => (p.line_margin > best.line_margin ? p : best), pool[0]);
+  }
 
   // balanced: best margin-per-euro that doesn't cost the customer more than
   // 25% above the cheapest option. Maximizes ALDI margin while staying fair.

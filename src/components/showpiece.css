@@ -205,6 +205,43 @@
 .sp-recipe-card.is-selected .sp-recipe-card__check {
   transform: scale(1);
 }
+
+/* ♥ save toggle — top-left, mirrors the check chip's geometry */
+.sp-recipe-card__fav {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 17px;
+  line-height: 1;
+  color: #fff;
+  background: rgba(0, 0, 32, 0.42);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  transition: transform 0.16s cubic-bezier(0.2, 1.4, 0.4, 1), background 0.16s ease, color 0.16s ease;
+}
+.sp-recipe-card__fav:hover {
+  transform: scale(1.12);
+}
+.sp-recipe-card__fav:active {
+  transform: scale(0.92);
+}
+.sp-recipe-card__fav:focus-visible {
+  outline: 3px solid var(--sp-blue);
+  outline-offset: 2px;
+}
+.sp-recipe-card__fav.is-saved {
+  background: #fff;
+  color: #e0245e;
+}
 .sp-recipe-card__head {
   display: flex;
   align-items: baseline;

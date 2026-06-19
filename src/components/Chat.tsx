@@ -7,6 +7,7 @@ import { useI18n } from "../lib/i18n";
 import MessageView from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import QuickReplies from "./QuickReplies";
+import DishBanner from "./DishBanner";
 
 interface ChatProps {
   /** Initial assistant greeting (seeded as the first message). */
@@ -83,6 +84,20 @@ export default function Chat({ greeting }: ChatProps) {
     void sendMessage({ text });
   };
 
+  // Re-ask a dish from anywhere (e.g. the "My Recipes" drawer in the header,
+  // which can't reach handleSend directly). Keep a ref so the window listener
+  // always calls the latest handler without re-subscribing.
+  const handleSendRef = useRef(handleSend);
+  handleSendRef.current = handleSend;
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      const text = (e as CustomEvent<{ text?: string }>).detail?.text;
+      if (text) handleSendRef.current(text);
+    };
+    window.addEventListener("aldi:ask", onAsk);
+    return () => window.removeEventListener("aldi:ask", onAsk);
+  }, []);
+
   // Show the typing skeleton only while a reply is in flight but no assistant
   // text has streamed in yet (avoids a bubble + skeleton flicker).
   const last = messages[messages.length - 1];
@@ -143,6 +158,7 @@ export default function Chat({ greeting }: ChatProps) {
             </div>
           )}
 
+          {showQuickReplies && <DishBanner onPick={handleSend} disabled={busy} />}
           {showQuickReplies && <QuickReplies onPick={handleSend} disabled={busy} />}
         </div>
       </div>

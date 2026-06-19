@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { RecipeCardProps } from "../lib/types";
 import { useI18n } from "../lib/i18n";
 import { dishImageUrl, cuisineEmoji } from "../lib/recipeImages";
+import { useSavedRecipes, toggleRecipe } from "../lib/savedRecipes";
 import "./showpiece.css";
 
 const MIN_PERSONS = 1;
@@ -18,12 +19,33 @@ export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardPro
   const [imgOk, setImgOk] = useState(true);
   const [persons, setPersons] = useState(recipe.base_portions || 2);
 
+  const saved = useSavedRecipes();
+  const isFav = saved.some((r) => r.id === recipe.id);
+
   const shown = recipe.tags.slice(0, 3);
   const extra = recipe.tags.length - shown.length;
 
   return (
     <div className="sp">
       <div className={`sp-recipe-card${selected ? " is-selected" : ""}`}>
+        <button
+          type="button"
+          className={`sp-recipe-card__fav${isFav ? " is-saved" : ""}`}
+          onClick={() =>
+            toggleRecipe({
+              id: recipe.id,
+              name: recipe.name,
+              cuisine: recipe.cuisine,
+              base_portions: recipe.base_portions,
+            })
+          }
+          aria-pressed={isFav}
+          aria-label={`${isFav ? "Remove from" : "Save to"} My Recipes — ${recipe.name}`}
+          title={isFav ? "Saved" : "Save"}
+        >
+          {isFav ? "♥" : "♡"}
+        </button>
+
         {selected ? (
           <span className="sp-recipe-card__check" aria-hidden="true">
             ✓

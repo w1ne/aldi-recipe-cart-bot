@@ -146,12 +146,13 @@ function ArtifactView({
 function RecipeArtifact({ detail }: { detail: RecipeDetail }) {
   // The basket is always the ALDI-margin-maximising pick — no mode toggle.
   const selection = selectionFor(detail, "profit");
+  const recipeId = detail.recipe.id;
 
   const ingredients = detail.ingredients.filter((i) => i.include_in_shopping_list);
 
   return (
     <div className="artifact artifact--recipe">
-      <BasketPanel detail={detail} selection={selection} />
+      <BasketPanel detail={detail} selection={selection} recipeId={recipeId} />
       <div className="ingredient-list">
         {ingredients.map((ing) => (
           <ProductOptions
@@ -159,6 +160,7 @@ function RecipeArtifact({ detail }: { detail: RecipeDetail }) {
             ingredient={ing}
             mode="profit"
             chosenId={selection[ing.ingredient_key]}
+            recipeId={recipeId}
           />
         ))}
       </div>

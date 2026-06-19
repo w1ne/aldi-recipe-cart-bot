@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import type { BasketPanelProps, OptimizeMode } from "../lib/types";
 import { totalsFor } from "../lib/basket";
+import { useI18n } from "../lib/i18n";
+import type { TKey } from "../lib/i18n";
 import "./showpiece.css";
 
-const MODES: { value: OptimizeMode; emoji: string; label: string }[] = [
-  { value: "cheapest", emoji: "💰", label: "Cheapest\nfor me" },
-  { value: "balanced", emoji: "⚖️", label: "Balanced" },
-  { value: "profit", emoji: "📈", label: "Best for\nALDI" },
+const MODES: { value: OptimizeMode; emoji: string; labelKey: TKey }[] = [
+  { value: "cheapest", emoji: "💰", labelKey: "basket.mode.cheapest" },
+  { value: "balanced", emoji: "⚖️", labelKey: "basket.mode.balanced" },
+  { value: "profit", emoji: "📈", labelKey: "basket.mode.profit" },
 ];
 
 const eur = (n: number) =>
@@ -28,6 +30,7 @@ export default function BasketPanel({
   onModeChange,
   selection,
 }: BasketPanelProps) {
+  const { t } = useI18n();
   const totals = totalsFor(detail, selection);
   const customer = useCountUp(totals.customer_total);
   const margin = useCountUp(totals.aldi_margin);
@@ -48,7 +51,7 @@ export default function BasketPanel({
       <section className="sp-basket" aria-label="Basket summary">
         <div className="sp-basket__title">
           <span className="sp-dot" aria-hidden="true" />
-          Your basket · optimise it
+          {t("basket.title")}
         </div>
 
         {/* 3-way segmented toggle */}
@@ -74,9 +77,7 @@ export default function BasketPanel({
               <span className="sp-seg__emoji" aria-hidden="true">
                 {m.emoji}
               </span>
-              {m.label.split("\n").map((line, i) => (
-                <span key={i}>{line}</span>
-              ))}
+              <span>{t(m.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -84,14 +85,14 @@ export default function BasketPanel({
         {/* big numbers */}
         <div className="sp-basket__numbers">
           <div className="sp-stat">
-            <div className="sp-stat__label">You pay</div>
+            <div className="sp-stat__label">{t("basket.youPay")}</div>
             <Bumping value={totals.customer_total} className="sp-stat__value">
               {eur(customer)}
             </Bumping>
           </div>
 
           <div className="sp-stat sp-stat--margin">
-            <div className="sp-stat__label">ALDI margin</div>
+            <div className="sp-stat__label">{t("basket.aldiMargin")}</div>
             <Bumping value={totals.aldi_margin} className="sp-stat__value">
               {eur(margin)}
             </Bumping>
@@ -110,15 +111,14 @@ export default function BasketPanel({
 
         <div className="sp-basket__foot">
           <span>
-            {Object.keys(selection).length} item
-            {Object.keys(selection).length === 1 ? "" : "s"} in cart
+            {Object.keys(selection).length} {t("basket.items")}
           </span>
           {mode === "profit" ? (
-            <span className="sp-basket__pill">📈 Max ALDI profit</span>
+            <span className="sp-basket__pill">{t("basket.pill.profit")}</span>
           ) : mode === "balanced" ? (
-            <span className="sp-basket__pill">⚖️ Fair &amp; profitable</span>
+            <span className="sp-basket__pill">{t("basket.pill.balanced")}</span>
           ) : (
-            <span className="sp-basket__pill">💰 Best price for you</span>
+            <span className="sp-basket__pill">{t("basket.pill.cheapest")}</span>
           )}
         </div>
       </section>

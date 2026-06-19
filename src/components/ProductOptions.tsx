@@ -1,4 +1,5 @@
 import type { ProductOption, ProductOptionsProps } from "../lib/types";
+import { useI18n } from "../lib/i18n";
 import "./showpiece.css";
 
 const eur = (n: number) =>
@@ -19,6 +20,7 @@ export default function ProductOptions({
   chosenId,
   onChoose,
 }: ProductOptionsProps) {
+  const { t } = useI18n();
   const amount = ingredient.scaled_amount ?? ingredient.amount;
   const amountLabel = formatAmount(amount, ingredient.unit);
 
@@ -34,7 +36,7 @@ export default function ProductOptions({
             {amountLabel}
             {ingredient.pantry_staple ? (
               <span className="sp-chip sp-chip--staple" style={{ marginLeft: 8 }}>
-                🧂 pantry staple
+                🧂 {t("product.staple")}
               </span>
             ) : null}
           </span>

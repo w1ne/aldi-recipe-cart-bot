@@ -160,6 +160,36 @@ p {
   opacity: 0.95;
 }
 
+.app__lang {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+}
+.app__lang-flag {
+  font-size: 16px;
+  line-height: 1;
+}
+.app__lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--text-on-navy);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  padding-right: 2px;
+}
+.app__lang-select option {
+  color: #111;
+}
+
 .app__main {
   flex: 1;
   min-height: 0;

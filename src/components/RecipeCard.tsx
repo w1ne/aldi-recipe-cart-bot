@@ -1,4 +1,5 @@
 import type { RecipeCardProps } from "../lib/types";
+import { useI18n } from "../lib/i18n";
 import "./showpiece.css";
 
 /**
@@ -7,6 +8,7 @@ import "./showpiece.css";
  * ingredient count, with a "Pick this" CTA that calls onSelect(recipe.id).
  */
 export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardProps) {
+  const { t } = useI18n();
   const pick = () => onSelect?.(recipe.id);
 
   // Show at most a few tags so the card stays compact; the rest collapse
@@ -22,9 +24,7 @@ export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardPro
         className={`sp-recipe-card${selected ? " is-selected" : ""}`}
         onClick={pick}
         aria-pressed={selected ? true : false}
-        aria-label={`${recipe.name}, ${recipe.cuisine}, ${recipe.prep_minutes} minutes, ${recipe.ingredient_count} ingredients. ${
-          selected ? "Selected." : "Tap to pick this recipe."
-        }`}
+        aria-label={`${recipe.name}, ${recipe.cuisine}, ${recipe.prep_minutes} ${t("recipe.min")}, ${recipe.ingredient_count} ${t("recipe.ingredients")}. ${t("recipe.pick")}`}
       >
         <span className="sp-recipe-card__check" aria-hidden="true">
           ✓
@@ -33,7 +33,7 @@ export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardPro
         <div className="sp-recipe-card__head">
           <span className="sp-recipe-card__cuisine">{recipe.cuisine}</span>
           <span className="sp-recipe-card__time" aria-hidden="true">
-            ⏱ {recipe.prep_minutes} min
+            ⏱ {recipe.prep_minutes} {t("recipe.min")}
           </span>
         </div>
 
@@ -56,11 +56,10 @@ export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardPro
 
         <div className="sp-recipe-card__foot">
           <span className="sp-recipe-card__count">
-            🧺 {recipe.ingredient_count} ingredient
-            {recipe.ingredient_count === 1 ? "" : "s"}
+            🧺 {recipe.ingredient_count} {t("recipe.ingredients")}
           </span>
           <span className="sp-cta" aria-hidden="true">
-            {selected ? "Picked ✓" : "Pick this"}
+            {selected ? `${t("recipe.pick")} ✓` : t("recipe.pick")}
           </span>
         </div>
       </button>

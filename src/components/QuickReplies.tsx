@@ -1,32 +1,39 @@
+import { useI18n } from "../lib/i18n";
+import type { TKey } from "../lib/i18n";
+
 interface QuickRepliesProps {
   onPick: (text: string) => void;
   disabled?: boolean;
 }
 
-const SUGGESTIONS = [
-  "🍝 I fancy pasta",
-  "🍗 Something with chicken",
-  "🥗 A quick salad",
-  "🍕 Pizza night",
+const SUGGESTION_KEYS: TKey[] = [
+  "quick.pasta",
+  "quick.chicken",
+  "quick.salad",
+  "quick.pizza",
 ];
 
 /**
  * Row of tappable suggestion chips shown on first load to kick off the chat.
  */
 export default function QuickReplies({ onPick, disabled }: QuickRepliesProps) {
+  const { t } = useI18n();
   return (
     <div className="quick-replies" role="group" aria-label="Suggestions">
-      {SUGGESTIONS.map((s) => (
-        <button
-          key={s}
-          type="button"
-          className="quick-replies__chip"
-          onClick={() => onPick(s)}
-          disabled={disabled}
-        >
-          {s}
-        </button>
-      ))}
+      {SUGGESTION_KEYS.map((key) => {
+        const label = t(key);
+        return (
+          <button
+            key={key}
+            type="button"
+            className="quick-replies__chip"
+            onClick={() => onPick(label)}
+            disabled={disabled}
+          >
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 }

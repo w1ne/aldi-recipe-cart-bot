@@ -1,59 +1,69 @@
 import { useState } from "react";
-import type {
-  Artifact,
-  OptimizeMode,
-  RecipeDetail,
-} from "../lib/types";
+import type { Artifact, OptimizeMode, RecipeDetail } from "../lib/types";
+import type { ChatUIMessage } from "../lib/aiChat";
 import { selectionFor } from "../lib/basket";
+import { useI18n } from "../lib/i18n";
 
-// Showpiece components owned by another agent. These files may not exist yet
-// while the chat shell is built — the imports are written ahead of integration.
+// Showpiece components — rendered from the tool parts of the streamed message.
 import RecipeCard from "./RecipeCard";
 import ProductOptions from "./ProductOptions";
 import BasketPanel from "./BasketPanel";
 import StoreGrid from "./StoreGrid";
 
-export interface Turn {
-  role: "user" | "assistant";
-  content: string;
-  artifacts?: Artifact[];
-  error?: boolean;
-  pending?: boolean;
-}
-
-interface ChatMessageProps {
-  turn: Turn;
+interface MessageProps {
+  message: ChatUIMessage;
   /** Programmatic send used by interactive artifacts (recipe pick, store pick…). */
   onSend: (text: string) => void;
   disabled?: boolean;
 }
 
-export default function ChatMessage({ turn, onSend, disabled }: ChatMessageProps) {
-  const isUser = turn.role === "user";
+/**
+ * Renders one streamed UI message. Text parts become prose bubbles; tool parts
+ * (once `output-available`) render the matching showpiece component from the
+ * Artifact in their output.
+ */
+export default function ChatMessage({ message, onSend, disabled }: MessageProps) {
+  const isUser = message.role === "user";
 
   return (
     <div className={`msg ${isUser ? "msg--user" : "msg--assistant"}`}>
-      <div className={`bubble ${turn.error ? "bubble--error" : ""}`}>
-        <p className="bubble__text">{turn.content}</p>
-        {turn.error && (
-          <button
-            type="button"
-            className="bubble__retry"
-            onClick={() => onSend("__retry__")}
-            disabled={disabled}
-          >
-            Try again
-          </button>
-        )}
-      </div>
+      {message.parts.map((part, i) => {
+        if (part.type === "text") {
+          if (!part.text) return null;
+          return (
+            <div className="bubble" key={i}>
+              <p className="bubble__text">{part.text}</p>
+            </div>
+          );
+        }
 
-      {turn.artifacts && turn.artifacts.length > 0 && (
-        <div className="artifacts">
-          {turn.artifacts.map((a, i) => (
-            <ArtifactView key={i} artifact={a} onSend={onSend} disabled={disabled} />
-          ))}
-        </div>
-      )}
+        // Tool parts: `tool-<name>`. Render the artifact once output is ready.
+        if (part.type.startsWith("tool-") && "state" in part) {
+          if (part.state === "output-available") {
+            const output = part.output as { artifact?: Artifact } | undefined;
+            if (output?.artifact) {
+              return (
+                <div className="artifacts" key={i}>
+                  <ArtifactView artifact={output.artifact} onSend={onSend} disabled={disabled} />
+                </div>
+              );
+            }
+            return null;
+          }
+          // input-streaming / input-available: a tool is running — show a hint.
+          return (
+            <div className="msg msg--assistant" key={i}>
+              <div className="bubble bubble--typing" aria-label="Working on it">
+                <span className="dot" />
+                <span className="dot" />
+                <span className="dot" />
+              </div>
+            </div>
+          );
+        }
+
+        return null;
+      })}
     </div>
   );
 }
@@ -67,16 +77,13 @@ function ArtifactView({
   onSend: (text: string) => void;
   disabled?: boolean;
 }) {
+  const { t } = useI18n();
   switch (artifact.type) {
     case "recipes":
       return (
         <div className="artifact artifact--recipes">
           {artifact.recipes.map((r) => (
-            <RecipeCard
-              key={r.id}
-              recipe={r}
-              onSelect={() => onSend(`I'll have ${r.name}`)}
-            />
+            <RecipeCard key={r.id} recipe={r} onSelect={() => onSend(`I'll have ${r.name}`)} />
           ))}
         </div>
       );
@@ -94,8 +101,12 @@ function ArtifactView({
               className="store-chip"
               onClick={() => onSend(`Use store ${s.name}`)}
               disabled={disabled}
+              aria-label={`${t("stores.use")}: ${s.name}`}
+              title={t("stores.use")}
             >
-              <span className="store-chip__pin" aria-hidden="true">📍</span>
+              <span className="store-chip__pin" aria-hidden="true">
+                📍
+              </span>
               {s.name}
             </button>
           ))}
@@ -127,12 +138,7 @@ function RecipeArtifact({ detail }: { detail: RecipeDetail }) {
 
   return (
     <div className="artifact artifact--recipe">
-      <BasketPanel
-        detail={detail}
-        mode={mode}
-        onModeChange={setMode}
-        selection={selection}
-      />
+      <BasketPanel detail={detail} mode={mode} onModeChange={setMode} selection={selection} />
       <div className="ingredient-list">
         {ingredients.map((ing) => (
           <ProductOptions

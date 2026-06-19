@@ -1,108 +1,115 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { ChatMessage as Msg } from "../lib/types";
-import { sendChat } from "../lib/chatClient";
-import ChatMessageView, { type Turn } from "./ChatMessage";
+import { useEffect, useMemo, useRef } from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import type { ChatUIMessage } from "../lib/aiChat";
+import { useI18n } from "../lib/i18n";
+import MessageView from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import QuickReplies from "./QuickReplies";
 
 interface ChatProps {
-  /** Initial assistant greeting (and any seed turns). */
+  /** Initial assistant greeting (seeded as the first message). */
   greeting: string;
 }
 
-const ERROR_TEXT =
-  "Sorry — I hit a snag reaching the kitchen. Tap to try that again.";
-
 export default function Chat({ greeting }: ChatProps) {
-  const [turns, setTurns] = useState<Turn[]>([
-    { role: "assistant", content: greeting },
-  ]);
-  const [loading, setLoading] = useState(false);
+  const { t, lang } = useI18n();
+
+  // Seed the conversation with the assistant greeting as the first UI message.
+  const initialMessages = useMemo<ChatUIMessage[]>(
+    () => [
+      {
+        id: "greeting",
+        role: "assistant",
+        parts: [{ type: "text", text: greeting }],
+      },
+    ],
+    [greeting],
+  );
+
+  // Keep the latest selected language available to the transport's body
+  // resolver (which is created once) so each send carries the current lang.
+  const langRef = useRef(lang);
+  langRef.current = lang;
+
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport<ChatUIMessage>({
+        api: "/api/chat",
+        // `body` accepts a resolver; evaluated per request so switching language
+        // is reflected on the very next message.
+        body: () => ({ language: langRef.current }),
+      }),
+    [],
+  );
+
+  const { messages, sendMessage, status, error } = useChat<ChatUIMessage>({
+    transport,
+    messages: initialMessages,
+  });
+
   const scrollRef = useRef<HTMLDivElement>(null);
-  // Last user text, so the error-bubble retry can resend it.
-  const lastUserText = useRef<string>("");
+  const busy = status === "submitted" || status === "streaming";
 
   // Keep the view pinned to the newest message.
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [turns, loading]);
+  }, [messages, status]);
 
-  const runTurn = useCallback(
-    async (userText: string, history: Turn[]) => {
-      lastUserText.current = userText;
-      setLoading(true);
+  // Programmatic + composer sends share one path.
+  const handleSend = (text: string) => {
+    if (busy) return;
+    void sendMessage({ text });
+  };
 
-      // Build the wire history from the conversation (prose only).
-      const wire: Msg[] = history
-        .filter((t) => !t.error && !t.pending)
-        .map((t) => ({ role: t.role, content: t.content }));
+  // Show the typing skeleton only while a reply is in flight but no assistant
+  // text has streamed in yet (avoids a bubble + skeleton flicker).
+  const last = messages[messages.length - 1];
+  const lastIsStreamingAssistant =
+    last?.role === "assistant" &&
+    last.parts.some((p) => p.type === "text" || (p.type.startsWith("tool-") && "state" in p));
+  const showTyping = busy && !lastIsStreamingAssistant;
 
-      try {
-        const res = await sendChat(wire);
-        setTurns((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: res.message,
-            artifacts: res.artifacts,
-          },
-        ]);
-      } catch (err) {
-        const detail = err instanceof Error ? err.message : ERROR_TEXT;
-        setTurns((prev) => [
-          ...prev,
-          { role: "assistant", content: detail, error: true },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  const handleSend = useCallback(
-    (text: string) => {
-      if (loading) return;
-
-      // Retry path: drop the trailing error bubble, resend last user text.
-      if (text === "__retry__") {
-        setTurns((prev) => {
-          const cleaned = prev.filter((t) => !t.error);
-          void runTurn(lastUserText.current, cleaned);
-          return cleaned;
-        });
-        return;
-      }
-
-      const userTurn: Turn = { role: "user", content: text };
-      setTurns((prev) => {
-        const next = [...prev, userTurn];
-        void runTurn(text, next);
-        return next;
-      });
-    },
-    [loading, runTurn]
-  );
-
-  const showQuickReplies = turns.length <= 1 && !loading;
+  // QuickReplies only on first load (greeting only, idle).
+  const showQuickReplies = messages.length <= 1 && status === "ready";
 
   return (
     <div className="chat">
       <div className="chat__scroll" ref={scrollRef}>
         <div className="chat__messages">
-          {turns.map((turn, i) => (
-            <ChatMessageView
-              key={i}
-              turn={turn}
-              onSend={handleSend}
-              disabled={loading}
-            />
+          {messages.map((message) => (
+            <MessageView key={message.id} message={message} onSend={handleSend} disabled={busy} />
           ))}
 
-          {loading && (
+          {error && (
             <div className="msg msg--assistant">
-              <div className="bubble bubble--typing" aria-label="Assistant is typing">
+              <div className="bubble bubble--error">
+                <p className="bubble__text">{t("chat.error")}</p>
+                <button
+                  type="button"
+                  className="bubble__retry"
+                  onClick={() => {
+                    const lastUser = [...messages]
+                      .reverse()
+                      .find((m) => m.role === "user");
+                    const text = lastUser?.parts
+                      .filter((p) => p.type === "text")
+                      .map((p) => (p as { text: string }).text)
+                      .join(" ");
+                    if (text) handleSend(text);
+                  }}
+                  disabled={busy}
+                >
+                  {t("chat.retry")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {showTyping && (
+            <div className="msg msg--assistant">
+              <div className="bubble bubble--typing" aria-label={t("chat.typing")}>
                 <span className="dot" />
                 <span className="dot" />
                 <span className="dot" />
@@ -110,13 +117,11 @@ export default function Chat({ greeting }: ChatProps) {
             </div>
           )}
 
-          {showQuickReplies && (
-            <QuickReplies onPick={handleSend} disabled={loading} />
-          )}
+          {showQuickReplies && <QuickReplies onPick={handleSend} disabled={busy} />}
         </div>
       </div>
 
-      <ChatInput onSend={handleSend} disabled={loading} />
+      <ChatInput onSend={handleSend} disabled={busy} />
     </div>
   );
 }

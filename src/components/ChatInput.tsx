@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useI18n } from "../lib/i18n";
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -10,6 +11,7 @@ interface ChatInputProps {
  * submits on Enter (Shift+Enter for newline), and respects the iOS safe area.
  */
 export default function ChatInput({ onSend, disabled }: ChatInputProps) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
   const taRef = useRef<HTMLTextAreaElement>(null);
 
@@ -48,7 +50,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
           value={value}
           onChange={onInput}
           onKeyDown={onKeyDown}
-          placeholder="Tell me what you fancy…"
+          placeholder={t("input.placeholder")}
           enterKeyHint="send"
           aria-label="Message"
         />
@@ -57,7 +59,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
           className="chat-input__send"
           onClick={submit}
           disabled={!canSend}
-          aria-label="Send message"
+          aria-label={t("input.send")}
         >
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             <path

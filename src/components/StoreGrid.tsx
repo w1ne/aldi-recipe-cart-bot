@@ -5,6 +5,7 @@ import type {
   RouteStop,
   StoreGridProps,
 } from "../lib/types";
+import { useI18n } from "../lib/i18n";
 import "./showpiece.css";
 
 /**
@@ -19,6 +20,7 @@ import "./showpiece.css";
  * share this mapping for consistency.
  */
 export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps) {
+  const { t } = useI18n();
   const W = grid.width || 9;
   const H = grid.height || 9;
   const CELL = 10; // SVG user units per cell; viewBox is W*CELL square
@@ -52,17 +54,25 @@ export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps
   const [litCount, setLitCount] = useState(animate ? 0 : stops.length);
   const [pulseOrder, setPulseOrder] = useState<number | null>(null);
   const [marker, setMarker] = useState<PathPoint>(() => path[0] ?? { x: 0, y: 0 });
+  // Deterministic "fully drawn" flag. Once true, the polyline's inline
+  // stroke-dashoffset is forced to 0 so the route line is ALWAYS visible at
+  // rest — independent of whether the CSS draw animation fired/completed.
+  const [drawn, setDrawn] = useState(!animate);
   const cartRef = useRef<SVGTextElement>(null);
 
   // duration scales with the route length so longer routes don't whip by.
   const durMs = clamp(2400 + totalLen * 28, 2600, 6500);
 
   useEffect(() => {
+    // No animation or nothing to draw: settle into the final, fully-drawn state.
     if (!animate || path.length < 2 || totalLen === 0) {
       setLitCount(stops.length);
       setMarker(path[path.length - 1] ?? path[0] ?? { x: 0, y: 0 });
+      setDrawn(true);
       return;
     }
+
+    setDrawn(false);
 
     const reduce =
       typeof window !== "undefined" &&
@@ -76,6 +86,7 @@ export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps
     if (reduce) {
       setLitCount(stops.length);
       setMarker(path[path.length - 1]);
+      setDrawn(true); // snap the line in for reduced-motion users
       return;
     }
 
@@ -100,7 +111,16 @@ export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps
       }
     };
     raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+
+    // Defense-in-depth: regardless of CSS `forwards` firing/completing, force the
+    // route line to its fully-drawn state (dashoffset 0) once the draw window has
+    // elapsed (+ a small buffer). This makes the final rest state deterministic.
+    const drawTimer = setTimeout(() => setDrawn(true), durMs + 120);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(drawTimer);
+    };
     // re-run if the route itself changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animate, plan, totalLen]);
@@ -110,11 +130,11 @@ export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps
 
   return (
     <div className="sp">
-      <section className="sp-grid" aria-label={`Store route map for ${grid.store_name}`}>
+      <section className="sp-grid" aria-label={`${t("route.mapOf")} · ${grid.store_name}`}>
         <header className="sp-grid__head">
           <span className="sp-grid__store">🗺 {grid.store_name}</span>
-          <span className="sp-grid__steps" aria-label={`${plan.total_steps} steps total`}>
-            👣 {plan.total_steps} steps
+          <span className="sp-grid__steps" aria-label={`${plan.total_steps} ${t("route.steps")}`}>
+            👣 {plan.total_steps} {t("route.steps")}
           </span>
         </header>
 
@@ -142,12 +162,17 @@ export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps
             {/* route line, drawn via stroke-dashoffset */}
             {path.length > 1 ? (
               <polyline
-                className={`sp-route-line${animate ? " is-drawing" : ""}`}
+                className={`sp-route-line${animate && !drawn ? " is-drawing" : ""}`}
                 points={polyPoints}
+                // Once `drawn` is true the inline dashoffset is pinned to 0, so the
+                // full route line is always visible at rest — it no longer relies
+                // on the CSS `forwards` fill persisting. onAnimationEnd flips the
+                // flag the instant the draw keyframe completes (no flash).
+                onAnimationEnd={() => setDrawn(true)}
                 style={
                   {
                     strokeDasharray: totalLen,
-                    strokeDashoffset: animate ? totalLen : 0,
+                    strokeDashoffset: drawn ? 0 : totalLen,
                     ["--sp-draw-dur" as string]: `${durMs}ms`,
                   } as React.CSSProperties
                 }
@@ -211,7 +236,7 @@ export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps
         </div>
 
         {/* ordered, synced legend */}
-        <ol className="sp-legend" aria-label="Pickup order">
+        <ol className="sp-legend" aria-label={t("route.pickupOrder")}>
           {stops.map((s, i) => {
             const lit = i < litCount;
             const endpoint = isEndpoint(s);

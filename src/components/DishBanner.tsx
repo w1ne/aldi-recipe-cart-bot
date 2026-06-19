@@ -21,12 +21,12 @@ const DISHES: { name: string; cuisine: string }[] = [
 ];
 
 // Local label map (per house rules — no edits to the shared i18n dictionary).
-const BANNER: Record<string, { headline: string; fancy: (dish: string) => string }> = {
-  en: { headline: "Tap a dish to get cooking", fancy: (d) => `I fancy ${d}` },
-  ua: { headline: "Торкніться страви — і почнемо готувати", fancy: (d) => `Хочу ${d}` },
-  ru: { headline: "Нажмите на блюдо — и начнём готовить", fancy: (d) => `Хочу ${d}` },
-  hu: { headline: "Koppints egy ételre, és főzzünk", fancy: (d) => `${d} kívánok` },
-  es: { headline: "Toca un plato y a cocinar", fancy: (d) => `Me apetece ${d}` },
+const BANNER: Record<string, { headline: string; ask: (dish: string) => string }> = {
+  en: { headline: "Tap a dish to get cooking", ask: (d) => `Let's make ${d}` },
+  ua: { headline: "Торкніться страви — і почнемо готувати", ask: (d) => `Готуймо ${d}` },
+  ru: { headline: "Нажмите на блюдо — и начнём готовить", ask: (d) => `Готовим ${d}` },
+  hu: { headline: "Koppints egy ételre, és főzzünk", ask: (d) => `Készítsünk ${d}` },
+  es: { headline: "Toca un plato y a cocinar", ask: (d) => `Hagamos ${d}` },
 };
 
 /**
@@ -51,7 +51,7 @@ export default function DishBanner({ onPick, disabled }: DishBannerProps) {
             name={dish.name}
             cuisine={dish.cuisine}
             disabled={disabled}
-            onPick={() => onPick(labels.fancy(dish.name))}
+            onPick={() => onPick(labels.ask(dish.name))}
           />
         ))}
       </div>

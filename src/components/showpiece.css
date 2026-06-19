@@ -480,6 +480,40 @@
   letter-spacing: 0.02em;
   color: var(--sp-navy);
 }
+.sp-modes {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 3px;
+  background: var(--sp-wash);
+  border-radius: 11px;
+}
+.sp-mode {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--sp-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+.sp-mode:hover {
+  color: var(--sp-navy);
+}
+.sp-mode.is-active {
+  background: #fff;
+  color: var(--sp-navy);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 95, 0.18));
+}
+.sp-mode:focus-visible {
+  outline: 3px solid var(--sp-blue);
+  outline-offset: 1px;
+}
 .sp-basket__title .sp-dot {
   width: 8px;
   height: 8px;

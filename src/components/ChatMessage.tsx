@@ -1,4 +1,5 @@
-import type { Artifact, RecipeDetail } from "../lib/types";
+import { useState } from "react";
+import type { Artifact, OptimizeMode, RecipeDetail } from "../lib/types";
 import type { ChatUIMessage } from "../lib/aiChat";
 import { selectionFor } from "../lib/basket";
 
@@ -128,21 +129,29 @@ function ArtifactView({
  * selection map from basket helpers.
  */
 function RecipeArtifact({ detail }: { detail: RecipeDetail }) {
-  // The basket is always the ALDI-margin-maximising pick — no mode toggle.
-  const selection = selectionFor(detail, "profit");
+  // Customer-facing basket toggle. Default keeps ALDI's preferred (Premium) pick;
+  // the shopper can switch to Cheapest or Balanced. ALDI margin is never shown.
+  const [mode, setMode] = useState<OptimizeMode>("profit");
+  const selection = selectionFor(detail, mode);
   const recipeId = detail.recipe.id;
 
   const ingredients = detail.ingredients.filter((i) => i.include_in_shopping_list);
 
   return (
     <div className="artifact artifact--recipe">
-      <BasketPanel detail={detail} selection={selection} recipeId={recipeId} />
+      <BasketPanel
+        detail={detail}
+        selection={selection}
+        recipeId={recipeId}
+        mode={mode}
+        onModeChange={setMode}
+      />
       <div className="ingredient-list">
         {ingredients.map((ing) => (
           <ProductOptions
             key={ing.ingredient_key}
             ingredient={ing}
-            mode="profit"
+            mode={mode}
             chosenId={selection[ing.ingredient_key]}
             recipeId={recipeId}
           />

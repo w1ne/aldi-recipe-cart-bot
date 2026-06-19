@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { BasketPanelProps } from "../lib/types";
+import type { BasketPanelProps, OptimizeMode } from "../lib/types";
 import { totalsFor } from "../lib/basket";
 import { useChecklist, remainingSelection } from "../lib/checklist";
 import { interpolate, useI18n } from "../lib/i18n";
@@ -36,12 +36,32 @@ const PROGRESS: Record<string, string> = {
   es: "{got} de {total} listos",
 };
 
+// Customer-facing basket modes. Labels are deliberately neutral — they describe
+// the SHOPPER's benefit, never ALDI's margin/profit (which is never shown).
+const MODES: { key: OptimizeMode; label: Record<string, string> }[] = [
+  {
+    key: "cheapest",
+    label: { en: "💰 Cheapest", ua: "💰 Найдешевше", ru: "💰 Дешевле", hu: "💰 Legolcsóbb", es: "💰 Más barato" },
+  },
+  {
+    key: "balanced",
+    label: { en: "⚖️ Balanced", ua: "⚖️ Збалансовано", ru: "⚖️ Баланс", hu: "⚖️ Kiegyensúlyozott", es: "⚖️ Equilibrado" },
+  },
+  {
+    key: "profit",
+    label: { en: "⭐ Premium", ua: "⭐ Преміум", ru: "⭐ Премиум", hu: "⭐ Prémium", es: "⭐ Prémium" },
+  },
+];
+
 export default function BasketPanel({
   detail,
   selection,
   recipeId,
+  mode,
+  onModeChange,
 }: BasketPanelProps & { recipeId?: number | string }) {
   const { t, lang } = useI18n();
+  const showModes = mode != null && onModeChange != null;
   const checklist = useChecklist(recipeId ?? "_none");
   const interactive = recipeId != null;
 
@@ -68,6 +88,22 @@ export default function BasketPanel({
           <span className="sp-dot" aria-hidden="true" />
           {t("basket.title")}
         </div>
+
+        {showModes ? (
+          <div className="sp-modes" role="group" aria-label={t("basket.title")}>
+            {MODES.map((m) => (
+              <button
+                key={m.key}
+                type="button"
+                className={`sp-mode${mode === m.key ? " is-active" : ""}`}
+                aria-pressed={mode === m.key}
+                onClick={() => onModeChange?.(m.key)}
+              >
+                {m.label[lang] ?? m.label.en}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <div className="sp-basket__numbers">
           <div className="sp-stat">

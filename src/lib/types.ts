@@ -184,8 +184,12 @@ export interface ProductOptionsProps {
 
 export interface BasketPanelProps {
   detail: RecipeDetail;
-  // resolved selection per ingredient_key -> option id (always profit-maximised)
+  // resolved selection per ingredient_key -> option id for the active mode
   selection: Record<string, number>;
+  // active basket mode + setter for the customer-facing toggle. Labels are
+  // customer-neutral (Cheapest / Balanced / Premium) — ALDI margin is NEVER shown.
+  mode?: OptimizeMode;
+  onModeChange?: (mode: OptimizeMode) => void;
 }
 
 export interface StoreGridProps {

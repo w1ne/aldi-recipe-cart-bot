@@ -130,11 +130,14 @@ p {
 
 .app__logo {
   flex: none;
-  height: 34px;
-  width: auto;
-  display: block;
+  display: inline-block;
   background: #fff;
-  padding: 5px 8px;
+  color: #00005f;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: 1px;
+  line-height: 1;
+  padding: 6px 9px;
   border-radius: 8px;
   box-shadow: var(--shadow-sm);
 }

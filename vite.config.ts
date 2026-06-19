@@ -12,7 +12,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["icon.svg", "aldi-logo.svg"],
+      includeAssets: ["icon.svg"],
       // Cache-busting: the new service worker activates immediately and takes
       // over open clients, and autoUpdate reloads the page so users never get
       // stuck on a stale build.
@@ -27,11 +27,7 @@ export default defineConfig({
         orientation: "portrait",
         start_url: "/",
         icons: [
-          // Square basket mark stays the maskable home-screen icon (a wide
-          // wordmark crops badly in a maskable safe-zone).
-          { src: "icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
-          // ALDI wordmark as the "any" icon (install prompts, app listings).
-          { src: "aldi-logo.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+          { src: "icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" },
         ],
       },
       workbox: {

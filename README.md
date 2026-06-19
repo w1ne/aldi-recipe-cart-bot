@@ -33,34 +33,23 @@ Chat your way through three steps:
 
 ## Architecture
 
+📐 **Full diagrams (Mermaid), the profit algorithm, and layer breakdown:
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).**
+
 The OpenAI key lives **only** on the server (the Cloudflare Pages Function) and is never shipped in the browser bundle.
 
-```
-┌─────────────────────────┐
-│  Browser (React PWA)    │   installable, mobile-first
-│  recipe cards · basket  │
-│  optimizer · route map  │
-└───────────┬─────────────┘
-            │  POST /api/chat   { messages: [...] }
-            ▼
-┌─────────────────────────┐
-│  /api/chat              │   Cloudflare Pages Function
-│  (functions/api/chat.ts)│   ← holds OPENAI_API_KEY (server-side only)
-│  streams assistant text │
-│  + structured artifacts │
-└───────────┬─────────────┘
-            │  OpenAI tool-calling loop
-            ▼
-┌─────────────────────────┐
-│  OpenAI (gpt-4o)        │   decides which ALDI tool to call
-└───────────┬─────────────┘
-            │  tool calls (search_recipes, get_recipe, plan_route, …)
-            ▼
-┌─────────────────────────┐
-│  ALDI Hackathon API     │   https://hackhaton.internal.zrcn.dev
-│  recipes · products ·   │   open CORS, no auth
-│  stores · route plans   │
-└─────────────────────────┘
+```mermaid
+flowchart TB
+    Browser["🧑‍🍳 Browser — React PWA<br/>recipe cards · checkable basket · store map · route"]
+    Fn["☁️ /api/chat — Cloudflare Pages Function<br/>holds OPENAI_API_KEY (server-side only)<br/>streamText(gpt-4o) + tools → streamed UI cards"]
+    AI["OpenAI gpt-4o<br/>picks which ALDI tool to call"]
+    API["🛒 ALDI Hackathon API (open CORS)<br/>recipes · products · stores · route plans"]
+
+    Browser -- "POST /api/chat (SSE)" --> Fn
+    Fn -- "tool-calling loop" --> AI
+    AI -- "search_recipes · get_recipe · plan_route" --> Fn
+    Fn -- "dispatchTool() — grounded, no invented data" --> API
+    Fn -- "stream tool-parts → generative-UI cards" --> Browser
 ```
 
 The function runs a bounded tool-calling loop: OpenAI picks ALDI tools, the

@@ -14,7 +14,7 @@ export default function App() {
     <div className="app">
       <header className="app__header">
         <div className="app__brand">
-          <img className="app__logo" src="/aldi-logo.svg" alt="ALDI" />
+          <span className="app__logo" aria-hidden="true">ALDI</span>
           <div className="app__titles">
             <h1 className="app__title">{t("app.title")}</h1>
             <p className="app__tagline">{t("app.tagline")}</p>

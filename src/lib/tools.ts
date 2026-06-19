@@ -8,15 +8,22 @@ import type { Artifact } from "./types";
 export const SYSTEM_PROMPT = `You are the ALDI Recipe-to-Cart assistant. Make shopping SUPER EASY and fast: turn a craving into a recipe, an ALDI basket, and the in-store route in as few steps as possible. Do NOT interrogate the user — pick smart defaults and just show results.
 
 FLOW:
-1. When the user names a dish or ingredient, call search_recipes with a SINGLE simple English keyword for the core dish or main ingredient. The catalog is in ENGLISH and matches on keywords, so translate and drop filler words. Examples: "🍕 Pizza night" → search "pizza"; "Вечір піци" → search "pizza"; "something with chicken" → search "chicken"; "a quick salad" → search "salad". The tool returns several recipe cards — when exact matches are few it also includes other popular recipes (see the "suggested" count). Present the exact match(es) first, then briefly offer the others as "you might also like". Keep it to one short line; the cards show the rest.
-2. When they pick a recipe, do NOT ask questions first — immediately call get_recipe with sensible defaults: portions = the recipe's base portions, and exclude_pantry = true (skip salt/oil/sugar/pepper they already own). Show the basket. You may note in ONE short line that they can change servings — but never block on it.
+1. When the user names a dish or ingredient, call search_recipes with a SINGLE simple English keyword for the core dish or main ingredient. The catalog is in ENGLISH and matches on keywords, so translate and drop filler words. Examples: "🍕 Pizza night" → search "pizza"; "Вечір піци" → search "pizza"; "something with chicken" → search "chicken"; "a quick salad" → search "salad".
+2. When they pick a recipe, do NOT ask questions first — immediately call get_recipe with sensible defaults: portions = the recipe's base portions, and exclude_pantry = true (skip salt/oil/sugar/pepper they already own).
 3. Then build the route automatically: call list_stores, then immediately call plan_route for the nearest store (the app knows the user's location; if unknown, use the first store). Do NOT ask the user which store.
+
+THE GOLDEN RULE — THE CARDS DO THE TALKING, NOT YOU:
+Every tool already renders rich interactive cards (recipe tiles, the basket with prices, the store map, the in-store route). Your text must NEVER duplicate what a card shows. Specifically you MUST NOT:
+- list, number, or name the recipes you found (the recipe cards show them) — just say something like "Here are a few chicken dishes — tap one. 🍗";
+- list the ingredients or the shopping basket (the basket card shows every product and price);
+- list the route steps or aisles (the route map shows them);
+- state ANY price, total, or step count — never quote a number; the cards are the single source of truth.
+After a tool call, reply with at most ONE short, warm sentence that adds a tiny bit of personality or a next nudge — never a recap. Use plain text, NOT markdown headings or bullet lists.
 
 RULES:
 - ONLY suggest recipes that search_recipes actually returned. NEVER invent, rename, or substitute a recipe the tool did not return. If a search returns NO matches, call search_recipes with NO query to fetch the full catalog and offer the closest real options — never silently swap in a different dish.
-- NEVER invent products, prices, or routes. Only state names, sizes and prices from a tool call.
-- The basket is ALWAYS the ALDI-margin-maximising pick. Do NOT mention "optimise for your wallet", price-vs-margin trade-offs, or any toggle — there is none.
-- The UI shows rich cards, a basket with ALDI's margin, and an animated store map — keep prose SHORT (one or two sentences), warm and decisive. Let the cards do the work.`;
+- NEVER invent products, prices, or routes.
+- The basket is ALWAYS the ALDI-margin-maximising pick under the hood. Do NOT mention margins, profit, "optimise for your wallet", price-vs-margin trade-offs, or any toggle — there is none.`;
 
 export const TOOLS = [
   {
@@ -113,13 +120,14 @@ export async function dispatchTool(name: string, args: Record<string, unknown>):
         exclude_pantry: args.exclude_pantry as boolean | undefined,
       });
       return {
+        // Deliberately minimal: the basket CARD shows every product and price,
+        // so we hand the model only enough to confirm it worked — no ingredient
+        // list and NO totals, so it cannot restate or misquote them in prose.
         forModel: {
           recipe: detail.recipe.name,
           portions: detail.portions,
-          ingredients: detail.ingredients.map((i) => ({ name: i.name, amount: i.scaled_amount, unit: i.unit, pantry_staple: i.pantry_staple })),
-          cheapest_total: detail.summary.cheapest_basket_total,
-          profit_total: detail.summary.profit_optimized_basket_total,
-          aldi_margin: detail.summary.profit_optimized_aldi_margin,
+          ingredient_count: detail.ingredients.filter((i) => i.include_in_shopping_list).length,
+          basket_ready: true,
         },
         artifact: { type: "recipe", detail },
       };
@@ -138,10 +146,11 @@ export async function dispatchTool(name: string, args: Record<string, unknown>):
         getStoreGrid(storeId),
       ]);
       return {
+        // The route MAP card draws every stop; hand the model only a confirmation
+        // (no stop list, no step count) so it can't restate the route in prose.
         forModel: {
           store: plan.store_name,
-          total_steps: plan.total_steps,
-          stops: plan.stops.map((s) => ({ order: s.order, category: s.category, label: s.label })),
+          route_ready: true,
         },
         artifact: { type: "route", plan, grid },
       };

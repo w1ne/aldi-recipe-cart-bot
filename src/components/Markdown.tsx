@@ -27,6 +27,17 @@ export function mdToHtml(text: string): string {
   let out = "";
   let inList = false;
   for (const raw of lines) {
+    // ATX headings (#, ##, ###…) — render as a small bold heading line so a
+    // stray "### Ingredients" never shows its hashes as literal text.
+    const heading = raw.match(/^\s*(#{1,6})\s+(.*)$/);
+    if (heading) {
+      if (inList) {
+        out += "</ul>";
+        inList = false;
+      }
+      out += `<strong class="md-h">${inline(heading[2])}</strong><br/>`;
+      continue;
+    }
     const bullet = raw.match(/^\s*[-*•]\s+(.*)$/);
     if (bullet) {
       if (!inList) {

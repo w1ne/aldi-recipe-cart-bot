@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#00005f"/>
+  <g transform="translate(256 264)">
+    <!-- stylized shopping basket -->
+    <path d="M-150 -40 L150 -40 L120 150 L-120 150 Z" fill="none" stroke="#ff7800" stroke-width="26" stroke-linejoin="round"/>
+    <path d="M-90 -40 C-90 -130 90 -130 90 -40" fill="none" stroke="#41b6e6" stroke-width="26" stroke-linecap="round"/>
+    <line x1="-60" y1="0" x2="-40" y2="110" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+    <line x1="0" y1="0" x2="0" y2="110" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+    <line x1="60" y1="0" x2="40" y2="110" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+  </g>
+</svg>

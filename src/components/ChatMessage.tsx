@@ -92,7 +92,11 @@ function ArtifactView({
       return (
         <div className="artifact artifact--recipes">
           {artifact.recipes.map((r) => (
-            <RecipeCard key={r.id} recipe={r} onSelect={() => onSend(`I'll have ${r.name}`)} />
+            <RecipeCard
+              key={r.id}
+              recipe={r}
+              onSelect={(_, persons) => onSend(`I'll have ${r.name} for ${persons} people`)}
+            />
           ))}
         </div>
       );

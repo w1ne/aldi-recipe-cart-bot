@@ -16,10 +16,21 @@ const eur = (n: number) =>
  * the customer total and, prominently, ALDI's margin with a subtle bar, and
  * count-up animates the numbers whenever the basket changes.
  */
+// Delivery CTA labels, kept local so the shared i18n dictionary stays lean.
+const DELIVER: Record<string, { cta: string; onway: string }> = {
+  en: { cta: "🚚 Get it delivered", onway: "✅ On its way — arriving in ~2 hours" },
+  ua: { cta: "🚚 Замовити доставку", onway: "✅ Вже в дорозі — прибуде за ~2 години" },
+  ru: { cta: "🚚 Заказать доставку", onway: "✅ Уже в пути — прибудет через ~2 часа" },
+  hu: { cta: "🚚 Kérem házhoz", onway: "✅ Úton van — kb. 2 óra múlva érkezik" },
+  es: { cta: "🚚 Pedir a domicilio", onway: "✅ En camino — llega en ~2 horas" },
+};
+
 export default function BasketPanel({ detail, selection }: BasketPanelProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const totals = totalsFor(detail, selection);
   const customer = useCountUp(totals.customer_total);
+  const [ordered, setOrdered] = useState(false);
+  const deliver = DELIVER[lang] ?? DELIVER.en;
 
   return (
     <div className="sp">
@@ -43,6 +54,15 @@ export default function BasketPanel({ detail, selection }: BasketPanelProps) {
             {Object.keys(selection).length} {t("basket.items")}
           </span>
         </div>
+
+        <button
+          type="button"
+          className={`sp-deliver${ordered ? " is-ordered" : ""}`}
+          onClick={() => setOrdered(true)}
+          disabled={ordered}
+        >
+          {ordered ? deliver.onway : deliver.cta}
+        </button>
       </section>
     </div>
   );

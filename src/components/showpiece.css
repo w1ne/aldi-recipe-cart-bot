@@ -86,6 +86,92 @@
   font-size: 46px;
   line-height: 1;
 }
+
+/* persons stepper + pick button */
+.sp-recipe-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+.sp-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid var(--sp-line);
+  border-radius: var(--sp-radius);
+  overflow: hidden;
+  background: #fff;
+}
+.sp-stepper__btn {
+  width: 34px;
+  height: 38px;
+  border: none;
+  background: transparent;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--sp-navy);
+  cursor: pointer;
+}
+.sp-stepper__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.sp-stepper__val {
+  min-width: 44px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--sp-navy);
+}
+.sp-pick {
+  flex: 1 1 auto;
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--sp-radius);
+  background: var(--sp-navy);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+.sp-pick:hover {
+  filter: brightness(1.12);
+}
+.sp-pick:active {
+  transform: scale(0.97);
+}
+.sp-recipe-card.is-selected .sp-pick {
+  background: #2e9e5b;
+}
+
+/* delivery CTA on the basket */
+.sp-deliver {
+  width: 100%;
+  margin-top: 12px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--sp-radius);
+  background: var(--sp-orange);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease, background 0.2s ease;
+}
+.sp-deliver:hover {
+  filter: brightness(1.08);
+}
+.sp-deliver:active {
+  transform: scale(0.98);
+}
+.sp-deliver.is-ordered {
+  background: #2e9e5b;
+  cursor: default;
+}
 .sp-recipe-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--sp-shadow-lg);

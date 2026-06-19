@@ -4,39 +4,36 @@ import { useI18n } from "../lib/i18n";
 import { dishImageUrl, cuisineEmoji } from "../lib/recipeImages";
 import "./showpiece.css";
 
+const MIN_PERSONS = 1;
+const MAX_PERSONS = 12;
+
 /**
- * RecipeCard — a compact, tappable recipe tile sized for a horizontal
- * scroll strip. Shows name, cuisine, prep time, tags as chips and an
- * ingredient count, with a "Pick this" CTA that calls onSelect(recipe.id).
+ * RecipeCard — a compact dish tile for the horizontal strip. Shows a photo,
+ * cuisine, prep time, name, a short description and tags, then a persons
+ * stepper next to a "Pick this" button. Picking sends the chosen servings so
+ * the basket is built for the right number of people right away.
  */
 export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardProps) {
   const { t } = useI18n();
   const [imgOk, setImgOk] = useState(true);
-  const pick = () => onSelect?.(recipe.id);
+  const [persons, setPersons] = useState(recipe.base_portions || 2);
 
-  // Show at most a few tags so the card stays compact; the rest collapse
-  // into a "+N" chip.
-  const MAX_TAGS = 3;
-  const shown = recipe.tags.slice(0, MAX_TAGS);
+  const shown = recipe.tags.slice(0, 3);
   const extra = recipe.tags.length - shown.length;
 
   return (
     <div className="sp">
-      <button
-        type="button"
-        className={`sp-recipe-card${selected ? " is-selected" : ""}`}
-        onClick={pick}
-        aria-pressed={selected ? true : false}
-        aria-label={`${recipe.name}, ${recipe.cuisine}, ${recipe.prep_minutes} ${t("recipe.min")}, ${recipe.ingredient_count} ${t("recipe.ingredients")}. ${t("recipe.pick")}`}
-      >
-        <span className="sp-recipe-card__check" aria-hidden="true">
-          ✓
-        </span>
+      <div className={`sp-recipe-card${selected ? " is-selected" : ""}`}>
+        {selected ? (
+          <span className="sp-recipe-card__check" aria-hidden="true">
+            ✓
+          </span>
+        ) : null}
 
         <div className="sp-recipe-card__photo" aria-hidden="true">
           {imgOk ? (
             <img
-              src={dishImageUrl(recipe.name)}
+              src={dishImageUrl(recipe.name, 320, 180)}
               alt=""
               loading="lazy"
               onError={() => setImgOk(false)}
@@ -63,9 +60,9 @@ export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardPro
 
         {recipe.tags.length > 0 ? (
           <div className="sp-chips" aria-hidden="true">
-            {shown.map((t) => (
-              <span className="sp-chip" key={t}>
-                {t}
+            {shown.map((tg) => (
+              <span className="sp-chip" key={tg}>
+                {tg}
               </span>
             ))}
             {extra > 0 ? <span className="sp-chip">+{extra}</span> : null}
@@ -73,14 +70,40 @@ export default function RecipeCard({ recipe, onSelect, selected }: RecipeCardPro
         ) : null}
 
         <div className="sp-recipe-card__foot">
-          <span className="sp-recipe-card__count">
-            🧺 {recipe.ingredient_count} {t("recipe.ingredients")}
-          </span>
-          <span className="sp-cta" aria-hidden="true">
-            {selected ? `${t("recipe.pick")} ✓` : t("recipe.pick")}
-          </span>
+          <div className="sp-stepper" role="group" aria-label="Persons">
+            <button
+              type="button"
+              className="sp-stepper__btn"
+              onClick={() => setPersons((p) => Math.max(MIN_PERSONS, p - 1))}
+              disabled={persons <= MIN_PERSONS}
+              aria-label="Fewer persons"
+            >
+              −
+            </button>
+            <span className="sp-stepper__val" aria-live="polite">
+              👤 {persons}
+            </span>
+            <button
+              type="button"
+              className="sp-stepper__btn"
+              onClick={() => setPersons((p) => Math.min(MAX_PERSONS, p + 1))}
+              disabled={persons >= MAX_PERSONS}
+              aria-label="More persons"
+            >
+              +
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="sp-pick"
+            onClick={() => onSelect?.(recipe.id, persons)}
+            aria-label={`${t("recipe.pick")} — ${recipe.name}, ${persons}`}
+          >
+            {t("recipe.pick")}
+          </button>
         </div>
-      </button>
+      </div>
     </div>
   );
 }

@@ -35,14 +35,13 @@ const WARM_INSTRUCTIONS =
   "Upbeat and natural, brisk but never rushed. One short sentence or two.";
 
 /**
- * RouteGuide — the deliverable. Wraps StoreGrid in CONTROLLED mode and drives
- * it step by step (entrance → each stop → checkout). Auto-plays: on entering a
- * step it builds localized narration, sends it to /api/tts, plays the returned
- * audio, and advances when the audio ENDS. If TTS is silent (204) or errors, it
- * falls back to a timed advance so the guide still works without sound.
+ * RouteGuide — wraps StoreGrid in CONTROLLED mode and lets the shopper step
+ * through the route MANUALLY (◀ / ▶). It never reads or advances on its own;
+ * the 🔊 button speaks the CURRENT step on demand via /api/tts (and does not
+ * move to the next step). The cart follows whatever step the shopper is on.
  */
 export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuideProps) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
 
   const stops = useMemo(
     () => [...plan.stops].sort((a, b) => a.order - b.order),
@@ -93,11 +92,9 @@ export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuide
   );
 
   const [stepIndex, setStepIndex] = useState(0);
-  const [playing, setPlaying] = useState(true);
   const [speaking, setSpeaking] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Token guards against stale async (a fetch resolving after we've moved on).
   const runToken = useRef(0);
 
@@ -116,10 +113,6 @@ export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuide
       audioRef.current.src = "";
       if (url.startsWith("blob:")) URL.revokeObjectURL(url);
       audioRef.current = null;
-    }
-    if (fallbackTimer.current) {
-      clearTimeout(fallbackTimer.current);
-      fallbackTimer.current = null;
     }
     setSpeaking(false);
   }, []);
@@ -146,111 +139,56 @@ export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuide
     [stops, t, totals, grabsFor]
   );
 
-  const advance = useCallback(() => {
-    setStepIndex((i) => Math.min(lastIndex, i + 1));
-  }, [lastIndex]);
-
-  // The auto-play engine: react to (stepIndex, playing). On each active step,
-  // narrate then advance on audio end, or fall back to a timer.
-  useEffect(() => {
-    stopAll();
-    if (!playing) return;
-    const stop = stops[stepIndex];
-    if (!stop) return;
-
-    // Last step (checkout): narrate once, then stop (no further advance).
-    const atEnd = stepIndex >= lastIndex;
-    const token = ++runToken.current;
-
-    const fallbackMs =
-      2800 + Math.max(0, stop.steps_from_previous || 0) * 400;
-
-    const scheduleFallback = () => {
-      if (atEnd) return;
-      fallbackTimer.current = setTimeout(() => {
-        if (token === runToken.current) advance();
-      }, fallbackMs);
-    };
-
-    const text = narrationFor(stepIndex);
-    if (!text) {
-      scheduleFallback();
-      return;
-    }
-
-    setSpeaking(true);
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch("/api/tts", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            text,
-            voice: "nova",
-            instructions: WARM_INSTRUCTIONS,
-          }),
-        });
-        if (cancelled || token !== runToken.current) return;
-
-        // 204 / no audio / non-ok → silent timed fallback.
-        if (res.status === 204 || !res.ok) {
-          setSpeaking(false);
-          scheduleFallback();
-          return;
-        }
-        const ct = res.headers.get("content-type") || "";
-        if (!ct.includes("audio")) {
-          setSpeaking(false);
-          scheduleFallback();
-          return;
-        }
-
-        const blob = await res.blob();
-        if (cancelled || token !== runToken.current) return;
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audioRef.current = audio;
-        audio.onended = () => {
-          if (token !== runToken.current) return;
-          setSpeaking(false);
-          if (!atEnd) advance();
-        };
-        audio.onerror = () => {
-          if (token !== runToken.current) return;
-          setSpeaking(false);
-          scheduleFallback();
-        };
+  // Speak the CURRENT step on demand. Does NOT advance to the next step.
+  const speak = useCallback(
+    (idx: number) => {
+      stopAll();
+      const text = narrationFor(idx);
+      if (!text) return;
+      const token = ++runToken.current;
+      setSpeaking(true);
+      (async () => {
         try {
-          await audio.play();
-        } catch {
-          // Autoplay blocked or failed → fall back to timed advance.
+          const res = await fetch("/api/tts", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ text, voice: "nova", instructions: WARM_INSTRUCTIONS }),
+          });
           if (token !== runToken.current) return;
-          setSpeaking(false);
-          scheduleFallback();
+          if (res.status === 204 || !res.ok) return setSpeaking(false);
+          const ct = res.headers.get("content-type") || "";
+          if (!ct.includes("audio")) return setSpeaking(false);
+          const blob = await res.blob();
+          if (token !== runToken.current) return;
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          audioRef.current = audio;
+          audio.onended = () => {
+            if (token === runToken.current) setSpeaking(false);
+          };
+          audio.onerror = () => {
+            if (token === runToken.current) setSpeaking(false);
+          };
+          try {
+            await audio.play();
+          } catch {
+            if (token === runToken.current) setSpeaking(false);
+          }
+        } catch {
+          if (token === runToken.current) setSpeaking(false);
         }
-      } catch {
-        if (cancelled || token !== runToken.current) return;
-        setSpeaking(false);
-        scheduleFallback();
-      }
-    })();
+      })();
+    },
+    [narrationFor, stopAll]
+  );
 
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIndex, playing, lang]);
-
-  // Clean up on unmount.
+  // Clean up audio on unmount.
   useEffect(() => () => stopAll(), [stopAll]);
 
-  // --- manual controls (Back/Next pause auto-play and jump) ---
+  // --- manual controls: stepping never auto-speaks ---
   const jumpTo = useCallback(
     (idx: number) => {
       stopAll();
-      setPlaying(false);
       setStepIndex(Math.max(0, Math.min(lastIndex, idx)));
     },
     [lastIndex, stopAll]
@@ -258,19 +196,12 @@ export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuide
 
   const onBack = () => jumpTo(stepIndex - 1);
   const onNext = () => jumpTo(stepIndex + 1);
-  const togglePlay = () => {
-    if (playing) {
-      stopAll();
-      setPlaying(false);
-    } else {
-      // Replay from the start if we're already at the end.
-      if (stepIndex >= lastIndex) setStepIndex(0);
-      setPlaying(true);
-    }
+  const toggleSpeak = () => {
+    if (speaking) stopAll();
+    else speak(stepIndex);
   };
 
   const current = stops[stepIndex];
-  const finished = !playing && stepIndex >= lastIndex;
   const atCheckout = current ? isCheckout(current) : false;
   const grabs = current ? grabsFor(current) : [];
 
@@ -306,12 +237,6 @@ export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuide
               <span className="guide-checkout__label">{t("basket.youPay")}</span>
               <span className="guide-checkout__val">
                 €{totals.customer_total.toFixed(2)}
-              </span>
-            </div>
-            <div className="guide-checkout__row">
-              <span className="guide-checkout__label">{t("basket.aldiMargin")}</span>
-              <span className="guide-checkout__val guide-checkout__val--margin">
-                €{totals.aldi_margin.toFixed(2)}
               </span>
             </div>
           </div>
@@ -362,10 +287,10 @@ export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuide
           <button
             type="button"
             className="guide-btn guide-btn--primary"
-            onClick={togglePlay}
-            aria-label={playing ? t("guide.pause") : finished ? t("guide.replay") : t("guide.play")}
+            onClick={toggleSpeak}
+            aria-label={speaking ? t("guide.pause") : t("guide.play")}
           >
-            {playing ? `⏸ ${t("guide.pause")}` : finished ? `↻ ${t("guide.replay")}` : `▶ ${t("guide.start")}`}
+            {speaking ? `⏸ ${t("guide.pause")}` : `🔊 ${t("guide.play")}`}
           </button>
 
           <button

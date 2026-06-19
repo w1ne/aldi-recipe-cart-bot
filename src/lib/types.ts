@@ -163,7 +163,8 @@ export interface ChatRequest {
 
 export interface RecipeCardProps {
   recipe: RecipeSummary;
-  onSelect?: (id: number) => void; // "Pick this recipe"
+  // "Pick this recipe" with the chosen number of persons (servings)
+  onSelect?: (id: number, persons: number) => void;
   selected?: boolean;
 }
 

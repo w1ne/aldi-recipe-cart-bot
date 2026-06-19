@@ -188,4 +188,10 @@ export interface StoreGridProps {
   plan: RoutePlan;
   // when true, the basket walks the path on mount (the showpiece animation)
   animate?: boolean;
+  // Controlled mode (used by RouteGuide). When provided (>= 0) the internal
+  // auto-run RAF is disabled; the cart sits at this stop's position, stops
+  // 0..controlledStopIndex are lit, and the cart tweens between the previous
+  // and the new index whenever it changes. When undefined, the existing
+  // auto-play behavior is 100% preserved.
+  controlledStopIndex?: number;
 }

@@ -19,8 +19,17 @@ import "./showpiece.css";
  * so we render row 0 at the top with NO flip. Cells, path and marker all
  * share this mapping for consistency.
  */
-export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps) {
+export default function StoreGrid({
+  grid,
+  plan,
+  animate = true,
+  controlledStopIndex,
+}: StoreGridProps) {
   const { t } = useI18n();
+  // Controlled mode is active when a non-negative index is supplied. In that
+  // mode RouteGuide drives the cart; we ignore the internal auto-run RAF.
+  const controlled =
+    typeof controlledStopIndex === "number" && controlledStopIndex >= 0;
   const W = grid.width || 9;
   const H = grid.height || 9;
   const CELL = 10; // SVG user units per cell; viewBox is W*CELL square
@@ -63,7 +72,60 @@ export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps
   // duration scales with the route length so longer routes don't whip by.
   const durMs = clamp(2400 + totalLen * 28, 2600, 6500);
 
+  // --- controlled mode: tween the cart between the previous and new index ---
+  const prevIdxRef = useRef<number>(controlled ? (controlledStopIndex as number) : 0);
   useEffect(() => {
+    if (!controlled) return;
+    const idx = clamp(controlledStopIndex as number, 0, Math.max(0, stops.length - 1));
+    // The route line is always shown fully drawn in controlled mode.
+    setDrawn(true);
+    setLitCount(idx + 1);
+    setPulseOrder(idx);
+
+    const target = stops[idx];
+    if (!target) return;
+    const targetPt: PathPoint = { x: target.x, y: target.y };
+
+    const fromIdx = prevIdxRef.current;
+    prevIdxRef.current = idx;
+
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // No previous position / reduced motion / nothing to move: snap there.
+    const fromStop = stops[clamp(fromIdx, 0, Math.max(0, stops.length - 1))];
+    if (reduce || !fromStop || fromIdx === idx) {
+      setMarker(targetPt);
+      return;
+    }
+
+    // Tween the cart along the path segment between the two stop vertices so the
+    // movement follows the aisles, not a straight diagonal.
+    const dFrom = distanceOfStop(fromStop, path, segLens);
+    const dTo = distanceOfStop(target, path, segLens);
+    const forward = dTo >= dFrom;
+    const span = Math.abs(dTo - dFrom);
+    const dur = clamp(500 + span * 18, 500, 1600);
+
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const tt = Math.min(1, (now - start) / dur);
+      const eased = easeInOutSine(tt);
+      const d = forward ? dFrom + span * eased : dFrom - span * eased;
+      setMarker(pointAtDistance(path, segLens, d));
+      if (tt < 1) raf = requestAnimationFrame(tick);
+      else setMarker(targetPt);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlled, controlledStopIndex, plan, totalLen]);
+
+  useEffect(() => {
+    if (controlled) return; // controlled mode handles cart/lit state itself
     // No animation or nothing to draw: settle into the final, fully-drawn state.
     if (!animate || path.length < 2 || totalLen === 0) {
       setLitCount(stops.length);
@@ -123,7 +185,7 @@ export default function StoreGrid({ grid, plan, animate = true }: StoreGridProps
     };
     // re-run if the route itself changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animate, plan, totalLen]);
+  }, [animate, plan, totalLen, controlled]);
 
   // build the polyline points string for the route line
   const polyPoints = path.map((p) => `${cx(p.x)},${cy(p.y)}`).join(" ");

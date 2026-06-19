@@ -8,13 +8,15 @@ import { useI18n } from "../lib/i18n";
 import RecipeCard from "./RecipeCard";
 import ProductOptions from "./ProductOptions";
 import BasketPanel from "./BasketPanel";
-import StoreGrid from "./StoreGrid";
+import RouteGuide from "./RouteGuide";
 
 interface MessageProps {
   message: ChatUIMessage;
   /** Programmatic send used by interactive artifacts (recipe pick, store pick…). */
   onSend: (text: string) => void;
   disabled?: boolean;
+  /** Most-recent recipe in the conversation, so the route guide lists products. */
+  recipe?: RecipeDetail;
 }
 
 /**
@@ -22,7 +24,7 @@ interface MessageProps {
  * (once `output-available`) render the matching showpiece component from the
  * Artifact in their output.
  */
-export default function ChatMessage({ message, onSend, disabled }: MessageProps) {
+export default function ChatMessage({ message, onSend, disabled, recipe }: MessageProps) {
   const isUser = message.role === "user";
 
   return (
@@ -44,7 +46,12 @@ export default function ChatMessage({ message, onSend, disabled }: MessageProps)
             if (output?.artifact) {
               return (
                 <div className="artifacts" key={i}>
-                  <ArtifactView artifact={output.artifact} onSend={onSend} disabled={disabled} />
+                  <ArtifactView
+                    artifact={output.artifact}
+                    onSend={onSend}
+                    disabled={disabled}
+                    recipe={recipe}
+                  />
                 </div>
               );
             }
@@ -72,10 +79,12 @@ function ArtifactView({
   artifact,
   onSend,
   disabled,
+  recipe,
 }: {
   artifact: Artifact;
   onSend: (text: string) => void;
   disabled?: boolean;
+  recipe?: RecipeDetail;
 }) {
   const { t } = useI18n();
   switch (artifact.type) {
@@ -116,7 +125,7 @@ function ArtifactView({
     case "route":
       return (
         <div className="artifact artifact--route">
-          <StoreGrid grid={artifact.grid} plan={artifact.plan} animate />
+          <RouteGuide grid={artifact.grid} plan={artifact.plan} recipe={recipe} />
         </div>
       );
 

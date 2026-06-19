@@ -49,6 +49,22 @@ const STRINGS: Record<Lang, Dict> = {
     "route.pickupOrder": "Pickup order",
     "route.mapOf": "Store route map",
     "stores.use": "Use this store",
+    "guide.title": "Your in-store guide",
+    "guide.step": "Step {n} of {m}",
+    "guide.grab": "Grab",
+    "guide.headTo": "Head to {category}",
+    "guide.entrance": "Welcome! Let's start your shopping trip.",
+    "guide.play": "Play",
+    "guide.pause": "Pause",
+    "guide.next": "Next",
+    "guide.back": "Back",
+    "guide.start": "Start guide",
+    "guide.replay": "Replay",
+    "guide.checkout": "At the checkout — you pay {total}, ALDI margin {margin}.",
+    "guide.done": "All done — happy cooking!",
+    "guide.narrateHead": "Head to {category}.",
+    "guide.narrateGrab": "Here, grab {items}.",
+    "guide.narrateStart": "Welcome to ALDI! Let's begin. Head to your first stop.",
   },
   ua: {
     "app.title": "Кошик рецептів",
@@ -83,6 +99,22 @@ const STRINGS: Record<Lang, Dict> = {
     "route.pickupOrder": "Порядок збору",
     "route.mapOf": "Маршрут магазином",
     "stores.use": "Обрати магазин",
+    "guide.title": "Ваш гід магазином",
+    "guide.step": "Крок {n} з {m}",
+    "guide.grab": "Візьміть",
+    "guide.headTo": "Прямуйте до: {category}",
+    "guide.entrance": "Вітаємо! Розпочнімо ваші покупки.",
+    "guide.play": "Пуск",
+    "guide.pause": "Пауза",
+    "guide.next": "Далі",
+    "guide.back": "Назад",
+    "guide.start": "Почати гід",
+    "guide.replay": "Повторити",
+    "guide.checkout": "На касі — ви платите {total}, маржа ALDI {margin}.",
+    "guide.done": "Готово — смачної готування!",
+    "guide.narrateHead": "Прямуйте до відділу: {category}.",
+    "guide.narrateGrab": "Тут візьміть: {items}.",
+    "guide.narrateStart": "Ласкаво просимо до ALDI! Починаймо. Прямуйте до першої зупинки.",
   },
   ru: {
     "app.title": "Корзина рецептов",
@@ -117,6 +149,22 @@ const STRINGS: Record<Lang, Dict> = {
     "route.pickupOrder": "Порядок сбора",
     "route.mapOf": "Маршрут по магазину",
     "stores.use": "Выбрать магазин",
+    "guide.title": "Ваш гид по магазину",
+    "guide.step": "Шаг {n} из {m}",
+    "guide.grab": "Возьмите",
+    "guide.headTo": "Идите к: {category}",
+    "guide.entrance": "Добро пожаловать! Начнём покупки.",
+    "guide.play": "Пуск",
+    "guide.pause": "Пауза",
+    "guide.next": "Далее",
+    "guide.back": "Назад",
+    "guide.start": "Начать гид",
+    "guide.replay": "Повторить",
+    "guide.checkout": "На кассе — вы платите {total}, маржа ALDI {margin}.",
+    "guide.done": "Готово — приятной готовки!",
+    "guide.narrateHead": "Идите к отделу: {category}.",
+    "guide.narrateGrab": "Здесь возьмите: {items}.",
+    "guide.narrateStart": "Добро пожаловать в ALDI! Начнём. Идите к первой остановке.",
   },
   hu: {
     "app.title": "Recept Kosár",
@@ -151,6 +199,22 @@ const STRINGS: Record<Lang, Dict> = {
     "route.pickupOrder": "Felvételi sorrend",
     "route.mapOf": "Bolti útvonal",
     "stores.use": "Bolt kiválasztása",
+    "guide.title": "Bolti útvonal-vezető",
+    "guide.step": "{n}. lépés / {m}",
+    "guide.grab": "Fogd meg",
+    "guide.headTo": "Menj ide: {category}",
+    "guide.entrance": "Üdvözlünk! Kezdjük a vásárlást.",
+    "guide.play": "Lejátszás",
+    "guide.pause": "Szünet",
+    "guide.next": "Tovább",
+    "guide.back": "Vissza",
+    "guide.start": "Vezető indítása",
+    "guide.replay": "Újra",
+    "guide.checkout": "A pénztárnál — {total} fizetsz, ALDI árrés {margin}.",
+    "guide.done": "Kész — jó főzést!",
+    "guide.narrateHead": "Menj a következő részleghez: {category}.",
+    "guide.narrateGrab": "Itt fogd meg: {items}.",
+    "guide.narrateStart": "Üdv az ALDI-ban! Kezdjük. Menj az első megállóhoz.",
   },
   es: {
     "app.title": "Cesta de Recetas",
@@ -185,6 +249,22 @@ const STRINGS: Record<Lang, Dict> = {
     "route.pickupOrder": "Orden de recogida",
     "route.mapOf": "Ruta por la tienda",
     "stores.use": "Elegir tienda",
+    "guide.title": "Tu guía en la tienda",
+    "guide.step": "Paso {n} de {m}",
+    "guide.grab": "Coge",
+    "guide.headTo": "Dirígete a {category}",
+    "guide.entrance": "¡Bienvenido! Empecemos tu compra.",
+    "guide.play": "Reproducir",
+    "guide.pause": "Pausa",
+    "guide.next": "Siguiente",
+    "guide.back": "Atrás",
+    "guide.start": "Iniciar guía",
+    "guide.replay": "Repetir",
+    "guide.checkout": "En la caja — pagas {total}, margen ALDI {margin}.",
+    "guide.done": "¡Listo, feliz cocina!",
+    "guide.narrateHead": "Dirígete a la sección {category}.",
+    "guide.narrateGrab": "Aquí, coge {items}.",
+    "guide.narrateStart": "¡Bienvenido a ALDI! Empecemos. Dirígete a tu primera parada.",
   },
 };
 
@@ -192,6 +272,19 @@ export type TKey = keyof (typeof STRINGS)["en"];
 
 export function translate(lang: Lang, key: TKey): string {
   return STRINGS[lang][key] ?? STRINGS.en[key] ?? String(key);
+}
+
+/**
+ * Tiny `{placeholder}` interpolation — no dependency. Replaces every
+ * `{name}` token in `template` with the matching value from `vars`.
+ */
+export function interpolate(
+  template: string,
+  vars: Record<string, string | number>
+): string {
+  return template.replace(/\{(\w+)\}/g, (m, key) =>
+    key in vars ? String(vars[key]) : m
+  );
 }
 
 interface I18nValue {

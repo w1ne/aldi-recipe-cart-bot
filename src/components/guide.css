@@ -1,0 +1,249 @@
+/* ============================================================================
+ * guide.css — styles for RouteGuide, the auto-play, TTS-narrated in-store
+ * turn-by-turn route guide. Mobile-first, ALDI-branded, big tap targets.
+ * Reuses the .sp design tokens (ALDI navy / blue / orange) via styles.css.
+ * ========================================================================== */
+
+.guide {
+  --g-navy: var(--aldi-navy, #00005f);
+  --g-blue: var(--aldi-blue, #41b6e6);
+  --g-orange: var(--aldi-orange, #ff7800);
+  --g-green: #4caf50;
+  --g-ink: #1c1c28;
+  --g-muted: #6b7280;
+  --g-line: #e6e8ee;
+  --g-paper: #ffffff;
+  --g-wash: #f5f7fb;
+  --g-radius: 18px;
+  --g-shadow: 0 8px 26px rgba(0, 0, 32, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: inherit;
+  color: var(--g-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- step panel ---------------------------------------------------------- */
+.guide-panel {
+  background: var(--g-paper);
+  border: 1.5px solid var(--g-line);
+  border-radius: var(--g-radius);
+  box-shadow: var(--g-shadow);
+  padding: 16px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guide-panel__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.guide-panel__step {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--g-blue);
+}
+
+.guide-panel__speaker {
+  font-size: 1rem;
+  line-height: 1;
+}
+.guide-panel__speaker.is-speaking {
+  animation: guide-pulse 1s ease-in-out infinite;
+}
+
+.guide-panel__head {
+  margin: 0;
+  font-size: 1.32rem;
+  line-height: 1.18;
+  font-weight: 800;
+  color: var(--g-navy);
+}
+
+.guide-panel__cat {
+  color: var(--g-orange);
+}
+
+/* product chips to grab at this stop */
+.guide-grab {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.guide-grab__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--g-wash);
+  border: 1px solid var(--g-line);
+  border-radius: 12px;
+}
+.guide-grab__tick {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--g-green);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+.guide-grab__name {
+  flex: 1 1 auto;
+  font-weight: 700;
+  font-size: 0.98rem;
+}
+.guide-grab__size {
+  color: var(--g-muted);
+  font-weight: 600;
+  font-size: 0.84rem;
+}
+.guide-grab__price {
+  flex: 0 0 auto;
+  font-weight: 800;
+  color: var(--g-navy);
+}
+
+/* checkout / done summary */
+.guide-checkout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0, 0, 95, 0.06), rgba(65, 182, 230, 0.12));
+  border: 1px solid var(--g-line);
+}
+.guide-checkout__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.guide-checkout__label {
+  color: var(--g-muted);
+  font-weight: 700;
+}
+.guide-checkout__val {
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--g-navy);
+}
+.guide-checkout__val--margin {
+  color: var(--g-orange);
+}
+
+/* ---- controls ------------------------------------------------------------ */
+.guide-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.guide-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  border: 1.5px solid var(--g-line);
+  background: var(--g-paper);
+  color: var(--g-navy);
+  border-radius: 14px;
+  min-height: 52px;
+  min-width: 52px;
+  padding: 0 14px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+}
+.guide-btn:hover {
+  box-shadow: var(--g-shadow);
+  transform: translateY(-1px);
+}
+.guide-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+.guide-btn:focus-visible {
+  outline: 3px solid var(--g-blue);
+  outline-offset: 2px;
+}
+.guide-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+.guide-btn--primary {
+  background: var(--g-orange);
+  border-color: var(--g-orange);
+  color: #fff;
+  flex: 1 1 auto;
+  justify-content: center;
+  font-size: 1.02rem;
+}
+
+/* ---- dot progress -------------------------------------------------------- */
+.guide-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.guide-dot {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #cfd6e4;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.guide-dot.is-done {
+  background: var(--g-green);
+}
+.guide-dot.is-active {
+  background: var(--g-orange);
+  transform: scale(1.5);
+}
+.guide-dot:focus-visible {
+  outline: 2px solid var(--g-blue);
+  outline-offset: 2px;
+}
+
+@keyframes guide-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.22);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide *,
+  .guide-panel__speaker.is-speaking {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

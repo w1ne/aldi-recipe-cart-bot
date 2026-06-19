@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import type { ChatUIMessage } from "../lib/aiChat";
+import type { Artifact, RecipeDetail } from "../lib/types";
 import { useI18n } from "../lib/i18n";
 import MessageView from "./ChatMessage";
 import ChatInput from "./ChatInput";
@@ -51,6 +52,25 @@ export default function Chat({ greeting }: ChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
 
+  // Track the most-recent `recipe` artifact's detail across the whole
+  // conversation so the route guide can list the real products to grab.
+  const latestRecipe = useMemo<RecipeDetail | undefined>(() => {
+    let found: RecipeDetail | undefined;
+    for (const m of messages) {
+      for (const part of m.parts) {
+        if (
+          part.type.startsWith("tool-") &&
+          "state" in part &&
+          (part as { state?: string }).state === "output-available"
+        ) {
+          const out = (part as { output?: { artifact?: Artifact } }).output;
+          if (out?.artifact?.type === "recipe") found = out.artifact.detail;
+        }
+      }
+    }
+    return found;
+  }, [messages]);
+
   // Keep the view pinned to the newest message.
   useEffect(() => {
     const el = scrollRef.current;
@@ -79,7 +99,13 @@ export default function Chat({ greeting }: ChatProps) {
       <div className="chat__scroll" ref={scrollRef}>
         <div className="chat__messages">
           {messages.map((message) => (
-            <MessageView key={message.id} message={message} onSend={handleSend} disabled={busy} />
+            <MessageView
+              key={message.id}
+              message={message}
+              onSend={handleSend}
+              disabled={busy}
+              recipe={latestRecipe}
+            />
           ))}
 
           {error && (

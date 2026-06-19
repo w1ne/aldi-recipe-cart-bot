@@ -68,7 +68,13 @@ export interface RecipeDetail {
 export interface Store {
   id: number;
   name: string;
-  // Additional fields (address/city/etc.) are passed through untouched.
+  // Geocoded fields from the ALDI stores API (used by the in-chat map).
+  lat?: number;
+  lng?: number;
+  city?: string;
+  address?: string;
+  grid_size?: number;
+  // Any further fields are passed through untouched.
   [key: string]: unknown;
 }
 

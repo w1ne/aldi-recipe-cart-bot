@@ -14,7 +14,9 @@
   "dependencies": {
     "@ai-sdk/openai": "^2.0.108",
     "@ai-sdk/react": "^2.0.206",
+    "@types/leaflet": "^1.9.21",
     "ai": "^5.0.204",
+    "leaflet": "^1.9.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.25.76"

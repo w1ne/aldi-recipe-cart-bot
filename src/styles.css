@@ -1,0 +1,495 @@
+/* ============================================================================
+   ALDI Recipe-to-Cart — shared stylesheet
+   ----------------------------------------------------------------------------
+   Sections:
+     1. Design tokens (:root)        — shared by every component, edit centrally
+     2. Reset & base
+     3. App frame & header
+     4. Chat layout (scroll + messages)
+     5. Message bubbles & typing indicator
+     6. Chat input (bottom-anchored composer)
+     7. Quick replies
+     8. Artifact containers (chat-shell side: layout/scroll wrappers)
+     9. Store chips
+    10. Animations & utilities
+
+   NOTE for other agents: shared tokens live in section 1 — please reuse them.
+   Append component-specific styles (RecipeCard, ProductOptions, BasketPanel,
+   StoreGrid) BELOW this file under a clearly labelled section of your own.
+   The chat shell only defines base/layout/chat/input + the artifact *wrappers*.
+   ========================================================================== */
+
+/* 1. ─────────────────────────────  DESIGN TOKENS  ───────────────────────── */
+:root {
+  /* Brand palette */
+  --aldi-navy: #00005f;
+  --aldi-blue: #41b6e6;
+  --aldi-orange: #ff7800;
+
+  /* Surfaces */
+  --bg: #f5f6f8;
+  --card: #ffffff;
+  --card-alt: #f0f2f6;
+
+  /* Text */
+  --text: #14152b;
+  --text-muted: #5b5f73;
+  --text-on-navy: #ffffff;
+
+  /* Lines & accents */
+  --border: #e4e7ee;
+  --accent: var(--aldi-blue);
+
+  /* Radii */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(16, 18, 45, 0.06);
+  --shadow-md: 0 6px 18px rgba(16, 18, 45, 0.08);
+  --shadow-lg: 0 12px 32px rgba(16, 18, 45, 0.12);
+
+  /* Layout */
+  --header-h: 60px;
+  --max-w: 720px;
+  --gap: 14px;
+  --touch: 44px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Safe areas */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 2. ──────────────────────────────  RESET & BASE  ──────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+p {
+  margin: 0;
+}
+
+/* 3. ───────────────────────────  APP FRAME & HEADER  ───────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  background: var(--bg);
+}
+
+.app__header {
+  flex: none;
+  padding-top: var(--safe-top);
+  background: var(--aldi-navy);
+  color: var(--text-on-navy);
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+}
+
+.app__brand {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.app__logo {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  color: var(--aldi-navy);
+  background: linear-gradient(180deg, #ffd200 0%, #ff7800 100%);
+  padding: 6px 9px;
+  border-radius: 8px;
+  line-height: 1;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+.app__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.app__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.app__tagline {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--aldi-blue);
+  opacity: 0.95;
+}
+
+.app__main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* 4. ─────────────────────────────  CHAT LAYOUT  ────────────────────────── */
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.chat__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.chat__messages {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  width: 100%;
+  padding: 16px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 5. ──────────────────────  BUBBLES & TYPING INDICATOR  ─────────────────── */
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: msg-in 0.32s var(--ease) both;
+}
+
+.msg--user {
+  align-items: flex-end;
+}
+
+.msg--assistant {
+  align-items: flex-start;
+}
+
+.bubble {
+  max-width: 86%;
+  padding: 11px 15px;
+  border-radius: var(--r-lg);
+  font-size: 15.5px;
+  line-height: 1.45;
+  box-shadow: var(--shadow-sm);
+  word-break: break-word;
+}
+
+.msg--user .bubble {
+  background: var(--aldi-navy);
+  color: var(--text-on-navy);
+  border-bottom-right-radius: 6px;
+}
+
+.msg--assistant .bubble {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 6px;
+}
+
+.bubble__text {
+  white-space: pre-wrap;
+}
+
+.bubble--error {
+  background: #fff4ef;
+  border-color: #ffd9c2;
+  color: #8a3b12;
+}
+
+.bubble__retry {
+  margin-top: 8px;
+  border: none;
+  background: var(--aldi-orange);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  min-height: 36px;
+}
+
+.bubble__retry:active {
+  transform: scale(0.97);
+}
+
+/* typing indicator */
+.bubble--typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 16px;
+}
+
+.bubble--typing .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  opacity: 0.5;
+  animation: typing 1.2s infinite ease-in-out;
+}
+
+.bubble--typing .dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.bubble--typing .dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* 6. ─────────────────────────────  CHAT INPUT  ─────────────────────────── */
+.chat-input {
+  flex: none;
+  background: linear-gradient(180deg, rgba(245, 246, 248, 0) 0%, var(--bg) 22%);
+  padding: 10px 12px calc(10px + var(--safe-bottom));
+}
+
+.chat-input__bar {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 6px 6px 6px 14px;
+  box-shadow: var(--shadow-md);
+}
+
+.chat-input__field {
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font-size: 16px; /* 16px avoids iOS zoom-on-focus */
+  line-height: 1.4;
+  color: var(--text);
+  max-height: 120px;
+  padding: 9px 0;
+}
+
+.chat-input__field::placeholder {
+  color: var(--text-muted);
+}
+
+.chat-input__send {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--aldi-navy);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  transition: transform 0.12s var(--ease), background 0.2s, opacity 0.2s;
+}
+
+.chat-input__send:not(:disabled):active {
+  transform: scale(0.92);
+}
+
+.chat-input__send:disabled {
+  background: #c7cbd6;
+  opacity: 0.8;
+  cursor: default;
+}
+
+.chat-input__send svg {
+  margin-left: 1px;
+}
+
+/* 7. ────────────────────────────  QUICK REPLIES  ───────────────────────── */
+.quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 4px 2px 8px;
+  animation: msg-in 0.4s var(--ease) both;
+}
+
+.quick-replies__chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  color: var(--aldi-navy);
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 10px 16px;
+  min-height: var(--touch);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s var(--ease), border-color 0.2s, background 0.2s;
+}
+
+.quick-replies__chip:active {
+  transform: scale(0.96);
+  border-color: var(--aldi-blue);
+  background: var(--card-alt);
+}
+
+/* 8. ───────────────────  ARTIFACT WRAPPERS (chat-shell side)  ──────────── */
+/* These are layout/scroll containers only. The cards themselves are styled by
+   the component-owning agent further down this file. */
+.artifacts {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* horizontal recipe carousel */
+.artifact--recipes {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  padding: 2px 2px 8px;
+  margin: 0 -2px;
+}
+
+.artifact--recipes > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+.artifact--recipes::-webkit-scrollbar {
+  height: 0;
+}
+
+.artifact--recipe {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ingredient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.artifact--stores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.artifact--route {
+  width: 100%;
+}
+
+/* 9. ──────────────────────────────  STORE CHIPS  ──────────────────────── */
+.store-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 10px 16px;
+  min-height: var(--touch);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s var(--ease), border-color 0.2s;
+}
+
+.store-chip:active {
+  transform: scale(0.96);
+  border-color: var(--aldi-blue);
+}
+
+.store-chip__pin {
+  font-size: 15px;
+}
+
+/* 10. ─────────────────────────  ANIMATIONS & UTIL  ─────────────────────── */
+@keyframes msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================================
+   END chat-shell styles.
+   Component-owning agents: append your sections below this line.
+   ========================================================================== */

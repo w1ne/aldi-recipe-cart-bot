@@ -10,9 +10,10 @@ import type {
   StoreGridData,
 } from "./types";
 
-export const ALDI_BASE =
-  (typeof process !== "undefined" && process.env?.ALDI_BASE) ||
-  "https://hackhaton.internal.zrcn.dev";
+// Allow overriding the base URL from the Pages Function env (set on globalThis)
+// without depending on Node's `process` typings in the browser/worker build.
+const envBase = (globalThis as { ALDI_BASE?: string }).ALDI_BASE;
+export const ALDI_BASE = envBase || "https://hackhaton.internal.zrcn.dev";
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${ALDI_BASE}${path}`, {

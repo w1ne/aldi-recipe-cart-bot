@@ -1,0 +1,626 @@
+/* ============================================================================
+ * showpiece.css — styles for the visual hero components:
+ *   StoreGrid · RecipeCard · ProductOptions · BasketPanel
+ * Imported once from StoreGrid.tsx (and defensively from each component, CSS
+ * de-dupes identical imports). Uses the ALDI design tokens declared in
+ * styles.css :root — with hard fallbacks so these components look right even
+ * if styles.css hasn't mounted yet.
+ * ========================================================================== */
+
+:root {
+  /* fallbacks mirror the tokens documented for styles.css */
+  --aldi-navy: #00005f;
+  --aldi-blue: #41b6e6;
+  --aldi-orange: #ff7800;
+}
+
+/* Local, namespaced derivations so we never clobber global tokens. */
+.sp {
+  --sp-navy: var(--aldi-navy, #00005f);
+  --sp-blue: var(--aldi-blue, #41b6e6);
+  --sp-orange: var(--aldi-orange, #ff7800);
+  --sp-green: #4caf50;
+  --sp-ink: #1c1c28;
+  --sp-muted: #6b7280;
+  --sp-line: #e6e8ee;
+  --sp-paper: #ffffff;
+  --sp-wash: #f5f7fb;
+  --sp-radius: 16px;
+  --sp-shadow: 0 6px 20px rgba(0, 0, 16, 0.08);
+  --sp-shadow-lg: 0 12px 34px rgba(0, 0, 32, 0.16);
+  font-family: inherit;
+  color: var(--sp-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ===========================================================================
+ * RecipeCard
+ * ======================================================================== */
+.sp-recipe-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 248px;
+  min-width: 248px;
+  padding: 16px;
+  text-align: left;
+  background: var(--sp-paper);
+  border: 1.5px solid var(--sp-line);
+  border-radius: var(--sp-radius);
+  box-shadow: var(--sp-shadow);
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.18s ease, border-color 0.18s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  font: inherit;
+  scroll-snap-align: start;
+}
+.sp-recipe-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sp-shadow-lg);
+}
+.sp-recipe-card:active {
+  transform: translateY(-1px) scale(0.985);
+}
+.sp-recipe-card:focus-visible {
+  outline: 3px solid var(--sp-blue);
+  outline-offset: 2px;
+}
+.sp-recipe-card.is-selected {
+  border-color: var(--sp-navy);
+  box-shadow: 0 0 0 3px rgba(0, 0, 95, 0.16), var(--sp-shadow-lg);
+}
+.sp-recipe-card__check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sp-navy);
+  color: #fff;
+  font-size: 14px;
+  transform: scale(0);
+  transition: transform 0.22s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.sp-recipe-card.is-selected .sp-recipe-card__check {
+  transform: scale(1);
+}
+.sp-recipe-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sp-recipe-card__cuisine {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-blue);
+}
+.sp-recipe-card__time {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sp-muted);
+  white-space: nowrap;
+}
+.sp-recipe-card__name {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 800;
+  color: var(--sp-navy);
+}
+.sp-recipe-card__desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--sp-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sp-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(65, 182, 230, 0.14);
+  color: var(--sp-navy);
+  white-space: nowrap;
+}
+.sp-chip--staple {
+  background: rgba(255, 120, 0, 0.14);
+  color: #b35500;
+}
+.sp-recipe-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.sp-recipe-card__count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sp-muted);
+}
+.sp-cta {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--sp-navy);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.sp-cta:hover {
+  background: #000080;
+}
+.sp-cta:active {
+  transform: scale(0.94);
+}
+.sp-recipe-card.is-selected .sp-cta {
+  background: var(--sp-green);
+}
+
+/* ===========================================================================
+ * ProductOptions
+ * ======================================================================== */
+.sp-product {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: var(--sp-paper);
+  border: 1.5px solid var(--sp-line);
+  border-radius: var(--sp-radius);
+  box-shadow: var(--sp-shadow);
+}
+.sp-product__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sp-product__name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--sp-navy);
+}
+.sp-product__amount {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sp-muted);
+  white-space: nowrap;
+}
+.sp-product__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sp-opt {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--sp-wash);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.16s ease, background 0.16s ease,
+    transform 0.12s ease;
+}
+.sp-opt:hover {
+  background: #eef2f9;
+}
+.sp-opt:active {
+  transform: scale(0.99);
+}
+.sp-opt:focus-visible {
+  outline: 3px solid var(--sp-blue);
+  outline-offset: 1px;
+}
+.sp-opt.is-chosen {
+  background: #fff;
+  border-color: var(--sp-navy);
+  box-shadow: 0 0 0 2px rgba(0, 0, 95, 0.1);
+}
+.sp-opt__radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--sp-muted);
+  display: grid;
+  place-items: center;
+  transition: border-color 0.16s ease;
+}
+.sp-opt.is-chosen .sp-opt__radio {
+  border-color: var(--sp-navy);
+}
+.sp-opt__radio::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sp-navy);
+  transform: scale(0);
+  transition: transform 0.18s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.sp-opt.is-chosen .sp-opt__radio::after {
+  transform: scale(1);
+}
+.sp-opt__body {
+  min-width: 0;
+}
+.sp-opt__pname {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sp-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sp-opt__meta {
+  font-size: 11.5px;
+  color: var(--sp-muted);
+  margin-top: 2px;
+}
+.sp-opt__right {
+  text-align: right;
+}
+.sp-opt__price {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--sp-navy);
+}
+.sp-opt__margin {
+  margin-top: 2px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--sp-orange);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ===========================================================================
+ * BasketPanel — the profit showpiece
+ * ======================================================================== */
+.sp-basket {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  border: 1.5px solid var(--sp-line);
+  border-radius: 20px;
+  box-shadow: var(--sp-shadow-lg);
+  overflow: hidden;
+}
+.sp-basket__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--sp-navy);
+}
+.sp-basket__title .sp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sp-orange);
+}
+
+/* segmented 3-way toggle */
+.sp-seg {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 4px;
+  background: var(--sp-wash);
+  border-radius: 12px;
+  isolation: isolate;
+}
+.sp-seg__thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  border-radius: 9px;
+  background: var(--sp-navy);
+  box-shadow: 0 3px 10px rgba(0, 0, 95, 0.28);
+  transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.2, 1);
+  z-index: 0;
+}
+.sp-seg__btn {
+  position: relative;
+  z-index: 1;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.15;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  color: var(--sp-muted);
+  cursor: pointer;
+  border-radius: 9px;
+  transition: color 0.22s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.sp-seg__btn .sp-seg__emoji {
+  font-size: 15px;
+}
+.sp-seg__btn.is-active {
+  color: #fff;
+}
+.sp-seg__btn:focus-visible {
+  outline: 3px solid var(--sp-blue);
+  outline-offset: 2px;
+}
+
+.sp-basket__numbers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.sp-stat {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--sp-wash);
+}
+.sp-stat--margin {
+  background: linear-gradient(135deg, rgba(255, 120, 0, 0.12), rgba(255, 120, 0, 0.04));
+  border: 1.5px solid rgba(255, 120, 0, 0.25);
+}
+.sp-stat__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--sp-muted);
+}
+.sp-stat--margin .sp-stat__label {
+  color: #b35500;
+}
+.sp-stat__value {
+  margin-top: 2px;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--sp-navy);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.sp-stat--margin .sp-stat__value {
+  color: var(--sp-orange);
+}
+.sp-stat__value.is-bumping {
+  animation: sp-bump 0.42s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+@keyframes sp-bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.sp-stat__bar {
+  margin-top: 8px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 120, 0, 0.18);
+  overflow: hidden;
+}
+.sp-stat__barfill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sp-orange), #ffb066);
+  transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sp-basket__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--sp-muted);
+}
+.sp-basket__pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(76, 175, 80, 0.16);
+  color: #2e7d32;
+}
+
+/* ===========================================================================
+ * StoreGrid — the hero
+ * ======================================================================== */
+.sp-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--sp-paper);
+  border: 1.5px solid var(--sp-line);
+  border-radius: 20px;
+  box-shadow: var(--sp-shadow-lg);
+}
+.sp-grid__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sp-grid__store {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--sp-navy);
+}
+.sp-grid__steps {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--sp-navy);
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+.sp-grid__svgwrap {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+}
+.sp-grid__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  overflow: visible;
+}
+.sp-cell {
+  transition: fill 0.3s ease;
+}
+.sp-cell-label {
+  font-size: 2.6px;
+  font-weight: 700;
+  fill: var(--sp-navy);
+  pointer-events: none;
+}
+.sp-route-line {
+  fill: none;
+  stroke: var(--sp-blue);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 95, 0.25));
+}
+.sp-route-line.is-drawing {
+  animation: sp-draw var(--sp-draw-dur, 4s) ease-in-out forwards;
+}
+@keyframes sp-draw {
+  to { stroke-dashoffset: 0; }
+}
+.sp-stop-node {
+  transition: transform 0.3s cubic-bezier(0.2, 1.5, 0.4, 1), opacity 0.3s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sp-stop-node.is-lit {
+  filter: drop-shadow(0 0 3px rgba(255, 120, 0, 0.7));
+}
+.sp-stop-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sp-stop-pulse.is-pulsing {
+  animation: sp-pulse 0.9s ease-out;
+}
+@keyframes sp-pulse {
+  0% { transform: scale(0.6); opacity: 0.6; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.sp-cart {
+  font-size: 5px;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ordered stop legend */
+.sp-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 168px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.sp-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: var(--sp-wash);
+  transition: background 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0.5;
+}
+.sp-legend__item.is-lit {
+  background: rgba(255, 120, 0, 0.12);
+  opacity: 1;
+}
+.sp-legend__num {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--sp-muted);
+  transition: background 0.3s ease;
+}
+.sp-legend__item.is-lit .sp-legend__num {
+  background: var(--sp-orange);
+}
+.sp-legend__item.is-endpoint .sp-legend__num {
+  background: var(--sp-navy);
+}
+.sp-legend__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sp-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sp-legend__check {
+  margin-left: auto;
+  color: var(--sp-green);
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.sp-legend__item.is-lit .sp-legend__check {
+  opacity: 1;
+}

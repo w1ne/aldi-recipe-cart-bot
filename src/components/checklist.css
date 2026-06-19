@@ -1,0 +1,158 @@
+/* ============================================================================
+ * checklist.css — "selectable like a real grocery app" styles.
+ * The shopping-list rows (ProductOptions), the basket progress (BasketPanel)
+ * and the in-store grab items (RouteGuide) all become tappable check-offs.
+ * "checked = I already have it / I grabbed it" ⇒ dimmed + struck through.
+ * Inherits the .sp / .guide tokens already declared in showpiece.css/guide.css.
+ * ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+ * Per-ingredient shopping-list row (ProductOptions)
+ * The whole card becomes one big tap target with a check circle.
+ * ------------------------------------------------------------------------- */
+.sp-product--check {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: opacity 0.18s ease, background 0.18s ease, border-color 0.18s ease,
+    transform 0.1s ease;
+}
+.sp-product--check:active {
+  transform: scale(0.992);
+}
+.sp-product--check:focus-visible {
+  outline: 3px solid var(--sp-blue);
+  outline-offset: 2px;
+}
+
+/* the round check control on the right of the header */
+.sp-check {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--sp-muted);
+  background: #fff;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.sp-check__mark {
+  transform: scale(0);
+  transition: transform 0.2s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+/* lay out name + check together */
+.sp-product__headrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+.sp-product__headtext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* DONE state: dimmed, struck name, filled green check */
+.sp-product--check.is-done {
+  opacity: 0.62;
+  background: var(--sp-wash);
+  border-color: var(--sp-line);
+}
+.sp-product--check.is-done .sp-product__name,
+.sp-product--check.is-done .sp-opt__pname {
+  text-decoration: line-through;
+  color: var(--sp-muted);
+}
+.sp-product--check.is-done .sp-check {
+  background: var(--sp-green);
+  border-color: var(--sp-green);
+}
+.sp-product--check.is-done .sp-check__mark {
+  transform: scale(1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Basket progress (BasketPanel)
+ * ------------------------------------------------------------------------- */
+.sp-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sp-progress__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sp-muted);
+}
+.sp-progress__got {
+  color: var(--sp-green);
+}
+.sp-progress__bar {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--sp-line);
+  overflow: hidden;
+}
+.sp-progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sp-green), #8bd49a);
+  transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Route grab items become tickable (RouteGuide)
+ * ------------------------------------------------------------------------- */
+.guide-grab__item--check {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: opacity 0.18s ease, background 0.18s ease, transform 0.1s ease;
+}
+.guide-grab__item--check:active {
+  transform: scale(0.99);
+}
+.guide-grab__item--check:focus-visible {
+  outline: 3px solid var(--g-blue, #41b6e6);
+  outline-offset: 2px;
+}
+/* unchecked tick = hollow ring; only fills when grabbed */
+.guide-grab__tick--check {
+  background: #fff;
+  color: #fff;
+  border: 2px solid var(--g-muted, #6b7280);
+}
+.guide-grab__tick--check .guide-grab__tickmark {
+  transform: scale(0);
+  transition: transform 0.2s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.guide-grab__item--check.is-done {
+  opacity: 0.6;
+}
+.guide-grab__item--check.is-done .guide-grab__name {
+  text-decoration: line-through;
+  color: var(--g-muted, #6b7280);
+}
+.guide-grab__item--check.is-done .guide-grab__tick--check {
+  background: var(--g-green, #4caf50);
+  border-color: var(--g-green, #4caf50);
+}
+.guide-grab__item--check.is-done .guide-grab__tickmark {
+  transform: scale(1);
+}

@@ -8,10 +8,12 @@ import type {
   StoreGridData,
 } from "../lib/types";
 import { selectionFor, totalsFor } from "../lib/basket";
+import { useChecklist } from "../lib/checklist";
 import { interpolate, useI18n } from "../lib/i18n";
 import StoreGrid from "./StoreGrid";
 import "./showpiece.css";
 import "./guide.css";
+import "./checklist.css";
 
 interface RouteGuideProps {
   plan: RoutePlan;
@@ -42,6 +44,11 @@ const WARM_INSTRUCTIONS =
  */
 export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuideProps) {
   const { t } = useI18n();
+
+  // Same checked-state store as the basket: ticking a grab here marks it
+  // "already have / grabbed" everywhere. Falls back to a no-op id when there's
+  // no recipe (grab items only exist when a recipe is present anyway).
+  const checklist = useChecklist(recipe?.recipe.id ?? "_none");
 
   const stops = useMemo(
     () => [...plan.stops].sort((a, b) => a.order - b.order),
@@ -242,18 +249,32 @@ export default function RouteGuide({ plan, grid, recipe, selection }: RouteGuide
           </div>
         ) : grabs.length ? (
           <ul className="guide-grab">
-            {grabs.map((g) => (
-              <li className="guide-grab__item" key={g.key}>
-                <span className="guide-grab__tick" aria-hidden="true">
-                  ✓
-                </span>
-                <span className="guide-grab__name">
-                  {g.name}{" "}
-                  {g.size ? <span className="guide-grab__size">· {g.size}</span> : null}
-                </span>
-                <span className="guide-grab__price">€{g.price.toFixed(2)}</span>
-              </li>
-            ))}
+            {grabs.map((g) => {
+              const done = checklist.isChecked(g.key);
+              return (
+                <li key={g.key}>
+                  <button
+                    type="button"
+                    className={`guide-grab__item guide-grab__item--check${
+                      done ? " is-done" : ""
+                    }`}
+                    role="checkbox"
+                    aria-checked={done}
+                    aria-label={g.name}
+                    onClick={() => checklist.toggle(g.key)}
+                  >
+                    <span className="guide-grab__tick guide-grab__tick--check" aria-hidden="true">
+                      <span className="guide-grab__tickmark">✓</span>
+                    </span>
+                    <span className="guide-grab__name">
+                      {g.name}{" "}
+                      {g.size ? <span className="guide-grab__size">· {g.size}</span> : null}
+                    </span>
+                    <span className="guide-grab__price">€{g.price.toFixed(2)}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         ) : null}
 

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { BasketPanelProps } from "../lib/types";
 import { totalsFor } from "../lib/basket";
-import { useI18n } from "../lib/i18n";
+import { useChecklist, remainingSelection } from "../lib/checklist";
+import { interpolate, useI18n } from "../lib/i18n";
 import "./showpiece.css";
+import "./checklist.css";
 
 const eur = (n: number) =>
   new Intl.NumberFormat("de-DE", {
@@ -25,12 +27,39 @@ const DELIVER: Record<string, { cta: string; onway: string }> = {
   es: { cta: "🚚 Pedir a domicilio", onway: "✅ En camino — llega en ~2 horas" },
 };
 
-export default function BasketPanel({ detail, selection }: BasketPanelProps) {
+// "{got} of {total} got" progress label, kept local to the component.
+const PROGRESS: Record<string, string> = {
+  en: "{got} of {total} got",
+  ua: "{got} з {total} зібрано",
+  ru: "{got} из {total} собрано",
+  hu: "{got} / {total} megvan",
+  es: "{got} de {total} listos",
+};
+
+export default function BasketPanel({
+  detail,
+  selection,
+  recipeId,
+}: BasketPanelProps & { recipeId?: number | string }) {
   const { t, lang } = useI18n();
-  const totals = totalsFor(detail, selection);
+  const checklist = useChecklist(recipeId ?? "_none");
+  const interactive = recipeId != null;
+
+  // Totals reflect only what's still to buy (checked = already have it).
+  const remaining = interactive
+    ? remainingSelection(selection, checklist.checked)
+    : selection;
+  const totals = totalsFor(detail, remaining);
+
+  const totalItems = Object.keys(selection).length;
+  const remainingItems = Object.keys(remaining).length;
+  const gotItems = totalItems - remainingItems;
+  const progressPct = totalItems > 0 ? Math.round((gotItems / totalItems) * 100) : 0;
+
   const customer = useCountUp(totals.customer_total);
   const [ordered, setOrdered] = useState(false);
   const deliver = DELIVER[lang] ?? DELIVER.en;
+  const progressTpl = PROGRESS[lang] ?? PROGRESS.en;
 
   return (
     <div className="sp">
@@ -49,11 +78,33 @@ export default function BasketPanel({ detail, selection }: BasketPanelProps) {
           </div>
         </div>
 
-        <div className="sp-basket__foot">
-          <span>
-            {Object.keys(selection).length} {t("basket.items")}
-          </span>
-        </div>
+        {interactive && totalItems > 0 ? (
+          <div className="sp-progress">
+            <div className="sp-progress__row">
+              <span>
+                {remainingItems} {t("basket.items")}
+              </span>
+              <span className="sp-progress__got">
+                {interpolate(progressTpl, { got: gotItems, total: totalItems })}
+              </span>
+            </div>
+            <div
+              className="sp-progress__bar"
+              role="progressbar"
+              aria-valuenow={gotItems}
+              aria-valuemin={0}
+              aria-valuemax={totalItems}
+            >
+              <div className="sp-progress__fill" style={{ width: `${progressPct}%` }} />
+            </div>
+          </div>
+        ) : (
+          <div className="sp-basket__foot">
+            <span>
+              {totalItems} {t("basket.items")}
+            </span>
+          </div>
+        )}
 
         <button
           type="button"

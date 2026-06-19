@@ -1,23 +1,58 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useI18n } from "../lib/i18n";
+import { useVoiceInput } from "../lib/useVoiceInput";
+import "./voice.css";
 
 interface ChatInputProps {
   onSend: (text: string) => void;
   disabled?: boolean;
 }
 
+// Mic button labels, kept local so the shared i18n dictionary stays lean.
+const MIC: Record<string, { start: string; stop: string }> = {
+  en: { start: "Dictate message", stop: "Stop dictation" },
+  ua: { start: "Продиктувати повідомлення", stop: "Зупинити диктування" },
+  ru: { start: "Продиктовать сообщение", stop: "Остановить диктовку" },
+  hu: { start: "Üzenet diktálása", stop: "Diktálás leállítása" },
+  es: { start: "Dictar mensaje", stop: "Detener dictado" },
+};
+
 /**
  * Bottom-anchored, mobile-first composer. Auto-grows up to a few rows,
  * submits on Enter (Shift+Enter for newline), and respects the iOS safe area.
+ * A mic button (left of send) dictates the message via Web Speech, falling back
+ * to a server transcribe endpoint when the browser lacks it.
  */
 export default function ChatInput({ onSend, disabled }: ChatInputProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [value, setValue] = useState("");
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const mic = MIC[lang] ?? MIC.en;
+
+  const grow = useCallback(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, []);
+
+  // Voice transcript replaces the field with the latest text so the user can
+  // glance/edit then hit send — we never auto-send.
+  const onTranscript = useCallback(
+    (text: string) => {
+      setValue(text);
+      // Let layout settle before measuring the new height.
+      requestAnimationFrame(grow);
+    },
+    [grow],
+  );
+
+  const voice = useVoiceInput({ lang, onTranscript });
 
   const submit = () => {
     const text = value.trim();
     if (!text || disabled) return;
+    if (voice.listening) voice.stop();
     onSend(text);
     setValue("");
     // reset auto-grown height
@@ -54,6 +89,23 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
           enterKeyHint="send"
           aria-label="Message"
         />
+        {voice.supported && (
+          <button
+            type="button"
+            className={`chat-input__mic${voice.listening ? " is-listening" : ""}`}
+            onClick={voice.toggle}
+            disabled={disabled}
+            aria-label={voice.listening ? mic.stop : mic.start}
+            aria-pressed={voice.listening}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a1 1 0 0 1 2 0 7 7 0 0 1-6 6.92V21a1 1 0 0 1-2 0v-3.08A7 7 0 0 1 5 11a1 1 0 0 1 2 0 5 5 0 0 0 10 0z"
+              />
+            </svg>
+          </button>
+        )}
         <button
           type="button"
           className="chat-input__send"

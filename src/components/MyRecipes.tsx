@@ -53,11 +53,11 @@ const MR: Record<
 
 // Mirror DishBanner's natural re-ask phrasing per language.
 const FANCY: Record<string, (dish: string) => string> = {
-  en: (d) => `I fancy ${d}`,
-  ua: (d) => `Хочу ${d}`,
-  ru: (d) => `Хочу ${d}`,
-  hu: (d) => `${d} kívánok`,
-  es: (d) => `Me apetece ${d}`,
+  en: (d) => `Let's make ${d}`,
+  ua: (d) => `Готуймо ${d}`,
+  ru: (d) => `Готовим ${d}`,
+  hu: (d) => `Készítsünk ${d}`,
+  es: (d) => `Hagamos ${d}`,
 };
 
 /**

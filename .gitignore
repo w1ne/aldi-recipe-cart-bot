@@ -5,3 +5,6 @@ dist
 *.local
 .DS_Store
 *.tsbuildinfo
+
+# agent worktrees / local tooling
+.claude/

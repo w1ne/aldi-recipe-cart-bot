@@ -123,6 +123,40 @@ Real example (Spaghetti Bolognese, 4 portions): naïve margin-max → **€15.53
 (1 kg beef, 4 tins); guarded margin-max → **€9.39** (cheapest is €8.59) — almost all
 the extra margin, none of the overbuy.
 
+## How the best route is found
+
+Finding the shortest shop is an **open Traveling-Salesman path on the 9×9 grid**:
+fixed start (Entrance), fixed end (Checkout), visit every required aisle once,
+minimize total steps. Four stages:
+
+1. **Ingredients → aisles.** Each ingredient carries a `category_id`; dedupe them
+   into the set of aisles to visit. *(e.g. `[9,4,1,10,15]` = Vegetables, Pasta &
+   Rice, Canned & Jarred, Meat & Poultry, Cheese & Deli.)*
+2. **Aisles → grid cells.** Each category maps to its cell on the 9×9 grid.
+3. **Order the stops (the optimization).** Choose the visiting order Entrance → … →
+   Checkout with the least total walking. With ~5–8 aisles this small TSP is solved
+   **exactly** (Held-Karp DP, or nearest-neighbour + 2-opt — identical at this size).
+   Distances are **grid steps (Manhattan)**, not straight lines.
+4. **Walk between stops.** Between consecutive stops, take the shortest grid path
+   (BFS / Manhattan through walkable cells). Concatenated → the `path` the cart
+   animates; lengths sum to `total_steps`.
+
+```mermaid
+flowchart LR
+    A["recipe ingredients"] --> B["dedupe category_ids<br/>= required aisles"]
+    B --> C["locate each aisle's<br/>cell on 9×9 grid"]
+    C --> D["order stops: open TSP<br/>Entrance → aisles → Checkout<br/>(min total steps)"]
+    D --> E["BFS/Manhattan walk<br/>between consecutive stops"]
+    E --> F["path + total_steps<br/>→ animated route"]
+```
+
+Real output (recipe 1 @ ALDI Wien Mitte): `Entrance(0,8) → Vegetables(0,7) +1 →
+Pasta&Rice(1,6) +2 → Canned(2,6) +1 → Meat(3,7) +2 → Cheese(6,8) +4 →
+Checkout(8,8) +2` = **12 steps**. Note the stops are **reordered for efficiency**,
+not kept in ingredient order. Solved server-side by the ALDI API's
+`/stores/:id/route-plan`; we consume `stops` / `path` / `total_steps` and animate
+them. We pick *which* store first via **haversine-nearest** geolocation.
+
 ## Other key decisions
 
 - **One grounded path.** Both the LLM tools and the keyless demo call `dispatchTool`
